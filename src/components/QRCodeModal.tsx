@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -9,6 +10,17 @@ interface QRCodeModalProps {
 
 const QRCodeModal = ({ sessionId, isOpen, onClose }: QRCodeModalProps) => {
     const roomUrl = `${window.location.origin}/cloud/?room=${sessionId}`;
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(roomUrl);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error('Copy failed:', err);
+        }
+    };
 
     if (!isOpen) return null;
 
@@ -26,7 +38,7 @@ const QRCodeModal = ({ sessionId, isOpen, onClose }: QRCodeModalProps) => {
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{ scale: 0.9, opacity: 0, y: 20 }}
                     transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                    className="glass-strong rounded-3xl p-6 md:p-8 max-w-sm w-full shadow-2xl"
+                    className="glass-strong rounded-3xl p-6 md:p-8 max-w-sm w-full shadow-2xl overflow-hidden"
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Header */}
@@ -52,7 +64,7 @@ const QRCodeModal = ({ sessionId, isOpen, onClose }: QRCodeModalProps) => {
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.2 }}
-                        className="bg-white rounded-2xl p-4 mb-6 shadow-lg"
+                        className="bg-white rounded-2xl p-4 mb-6 shadow-lg overflow-hidden"
                     >
                         <QRCodeSVG
                             value={roomUrl}
@@ -65,22 +77,38 @@ const QRCodeModal = ({ sessionId, isOpen, onClose }: QRCodeModalProps) => {
                     </motion.div>
 
                     {/* Room ID */}
-                    <div className="glass rounded-xl p-4 mb-4 text-center">
+                    <div className="glass rounded-xl p-4 mb-4 text-center overflow-hidden">
                         <p className="text-white/50 text-xs mb-1">房間 ID</p>
                         <p className="text-white font-bold text-2xl font-mono tracking-wider">{sessionId}</p>
                     </div>
 
-                    {/* Copy URL button */}
+                    {/* Copy URL button with feedback */}
                     <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => {
-                            navigator.clipboard.writeText(roomUrl);
-                        }}
-                        className="btn-primary w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-3"
+                        onClick={handleCopy}
+                        className={`w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-3 transition-all duration-300 ${copied
+                                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30'
+                                : 'btn-primary'
+                            }`}
                     >
-                        <span>🔗</span>
-                        <span>複製連結</span>
+                        {copied ? (
+                            <>
+                                <motion.span
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className="text-xl"
+                                >
+                                    ✓
+                                </motion.span>
+                                <span>已複製連結！</span>
+                            </>
+                        ) : (
+                            <>
+                                <span>🔗</span>
+                                <span>複製連結</span>
+                            </>
+                        )}
                     </motion.button>
 
                     {/* Close hint */}
