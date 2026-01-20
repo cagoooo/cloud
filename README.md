@@ -1,73 +1,62 @@
-# React + TypeScript + Vite
+# ☁️ WordCloud - 即時互動文字雲
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[![Deploy to GitHub Pages](https://github.com/cagoooo/cloud/actions/workflows/deploy.yml/badge.svg)](https://github.com/cagoooo/cloud/actions/workflows/deploy.yml)
 
-Currently, two official plugins are available:
+一個現代化的即時互動文字雲應用，支援多人協作、房間系統和精美的視覺效果。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+🔗 **線上體驗**: [https://cagoooo.github.io/cloud/](https://cagoooo.github.io/cloud/)
 
-## React Compiler
+## ✨ 功能特色
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- 🎨 **流光視覺效果** - Top 1-3 詞彙使用動態流光漸層
+- 🏆 **HUD 排名系統** - Top 1 顯示科技風 RANK 標籤
+- 🌈 **多層次設計** - 實心、熱門、描邊等多種字體風格
+- 🔄 **即時同步** - Firebase Firestore 即時更新
+- 📱 **響應式設計** - 支援桌面和行動裝置
+- 🏠 **房間系統** - 建立專屬房間分享給朋友
+- 📷 **匯出功能** - 支援匯出為圖片
+- 🔗 **QR Code** - 快速分享房間連結
 
-## Expanding the ESLint configuration
+## 🛠 技術架構
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **前端框架**: React 19 + TypeScript
+- **建置工具**: Vite 7
+- **樣式**: Tailwind CSS 4
+- **動畫**: Framer Motion
+- **文字雲**: d3-cloud
+- **後端**: Firebase (Firestore + Realtime Database)
+- **部署**: GitHub Pages
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 🚀 快速開始
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+```bash
+# 安裝依賴
+npm install
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# 開發模式
+npm run dev
+
+# 建置
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 📦 版本歷史
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### v1.3.0 (2026-01-20)
+- ✨ V3 視覺升級：流光文字動畫
+- ✨ Top 1 科技風 RANK 標籤
+- ✨ 霓虹玻璃容器效果
+- ✨ 描邊字體背景層
+- 🐛 修復長中文字顯示問題
+- 🔧 移除點擊投票功能（避免佈局混亂）
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### v1.2.0
+- 輸入介面優化
+- 文字雲顯示上限提高到 20 字
+
+### v1.0.0
+- 初始版本發布
+
+## 📄 授權
+
+MIT License

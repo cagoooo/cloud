@@ -86,29 +86,29 @@ const InputInterface = ({ sessionId }: InputInterfaceProps) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="glass-strong rounded-2xl md:rounded-3xl p-5 md:p-6 lg:p-8"
+                className="glass-strong rounded-2xl p-4 md:p-5 lg:p-6"
             >
-                {/* Header - LARGER */}
-                <div className="text-center mb-6 md:mb-8">
+                {/* Header */}
+                <div className="text-center mb-5">
                     <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ delay: 0.2, type: 'spring' }}
-                        className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-4 md:mb-5 rounded-2xl md:rounded-3xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-xl shadow-violet-500/40"
+                        className="w-12 h-12 md:w-14 md:h-14 mx-auto mb-3 rounded-xl md:rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/30"
                     >
-                        <span className="text-3xl md:text-4xl">💭</span>
+                        <span className="text-2xl md:text-3xl">💭</span>
                     </motion.div>
-                    <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-white mb-2 md:mb-3">
+                    <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-1">
                         分享你的想法
                     </h2>
-                    <p className="text-white/60 text-sm md:text-base lg:text-lg">
+                    <p className="text-white/50 text-xs md:text-sm">
                         輸入詞彙，即時顯示在文字雲
                     </p>
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
-                    {/* Input - LARGER */}
+                <form onSubmit={handleSubmit} className="space-y-3">
+                    {/* Input */}
                     <div className="relative">
                         <input
                             type="text"
@@ -116,26 +116,26 @@ const InputInterface = ({ sessionId }: InputInterfaceProps) => {
                             onChange={(e) => setInputValue(e.target.value)}
                             placeholder="輸入你想說的..."
                             maxLength={30}
-                            className="glass-input w-full px-5 md:px-6 py-5 md:py-6 rounded-xl md:rounded-2xl text-white text-lg md:text-xl font-medium pr-16 md:pr-20"
+                            className="glass-input w-full px-4 py-4 rounded-xl text-white text-base md:text-lg font-medium pr-14"
                             disabled={isSubmitting}
                         />
-                        <div className="absolute right-4 md:right-5 top-1/2 -translate-y-1/2 text-white/40 text-sm md:text-base font-medium">
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-xs font-medium">
                             {inputValue.length}/30
                         </div>
                     </div>
 
-                    {/* Submit button - MUCH LARGER */}
+                    {/* Submit button */}
                     <motion.button
                         type="submit"
                         disabled={!inputValue.trim() || isSubmitting}
-                        whileHover={{ scale: 1.02, y: -2 }}
+                        whileHover={{ scale: 1.02, y: -1 }}
                         whileTap={{ scale: 0.98 }}
-                        className="btn-primary w-full py-5 md:py-6 lg:py-7 rounded-xl md:rounded-2xl font-bold text-xl md:text-2xl text-white flex items-center justify-center gap-3 md:gap-4 shadow-xl shadow-violet-500/30"
+                        className="btn-primary w-full py-4 rounded-xl font-bold text-base md:text-lg text-white flex items-center justify-center gap-2 shadow-lg shadow-violet-500/25"
                     >
                         {isSubmitting ? (
                             <>
                                 <motion.div
-                                    className="w-7 h-7 md:w-8 md:h-8 border-3 border-white/30 border-t-white rounded-full"
+                                    className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
                                     animate={{ rotate: 360 }}
                                     transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                                 />
@@ -143,7 +143,7 @@ const InputInterface = ({ sessionId }: InputInterfaceProps) => {
                             </>
                         ) : (
                             <>
-                                <svg className="w-7 h-7 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                                 </svg>
                                 <span>送出</span>
@@ -152,12 +152,12 @@ const InputInterface = ({ sessionId }: InputInterfaceProps) => {
                     </motion.button>
                 </form>
 
-                {/* Quick suggestions - LARGER BUTTONS */}
-                <div className="mt-6 md:mt-8 pt-5 md:pt-6 border-t border-white/10">
-                    <p className="text-white/50 text-sm md:text-base text-center mb-4 font-medium">
+                {/* Quick suggestions */}
+                <div className="mt-4 pt-4 border-t border-white/10">
+                    <p className="text-white/40 text-xs text-center mb-3 font-medium">
                         ⚡ 快速輸入
                     </p>
-                    <div className="grid grid-cols-4 gap-2 md:gap-3">
+                    <div className="grid grid-cols-4 gap-2">
                         {quickWords.map((word, i) => (
                             <motion.button
                                 key={word.text}
@@ -166,12 +166,12 @@ const InputInterface = ({ sessionId }: InputInterfaceProps) => {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.05 * i }}
-                                whileHover={{ scale: 1.08, y: -3 }}
+                                whileHover={{ scale: 1.05, y: -2 }}
                                 whileTap={{ scale: 0.95 }}
-                                className="btn-secondary py-4 md:py-5 rounded-xl md:rounded-2xl text-white/90 hover:text-white flex flex-col items-center gap-1 md:gap-2 hover:shadow-lg transition-shadow"
+                                className="btn-secondary py-3 rounded-xl text-white/80 hover:text-white flex flex-col items-center gap-1 hover:shadow-md transition-shadow"
                             >
-                                <span className="text-2xl md:text-3xl">{word.emoji}</span>
-                                <span className="text-sm md:text-base font-semibold">{word.text}</span>
+                                <span className="text-xl md:text-2xl">{word.emoji}</span>
+                                <span className="text-xs md:text-sm font-medium">{word.text}</span>
                             </motion.button>
                         ))}
                     </div>

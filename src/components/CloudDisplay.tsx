@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import cloud from 'd3-cloud';
-import { useWords, voteWord, type AggregatedWord } from '../lib/firebase';
+import { useWords, type AggregatedWord } from '../lib/firebase';
 
 interface CloudDisplayProps {
     sessionId: string;
@@ -23,20 +23,24 @@ interface PositionedWord extends AggregatedWord {
     isHot: boolean;
     isTop: boolean;
     glowColor: string;
+    isOutline: boolean;
 }
 
-const getWordStyle = (value: number, maxValue: number, index: number) => {
+const getWordStyle = (value: number, maxValue: number, index: number, totalWords: number) => {
     const ratio = value / maxValue;
 
+    // Top 1 - Gold with breathing glow
     if (index === 0 && value > 1) {
         return {
             color: '#fbbf24',
             glowColor: 'rgba(251, 191, 36, 0.6)',
             isTop: true,
             isHot: true,
+            isOutline: false,
         };
     }
 
+    // Top 2-3 - Hot colors
     if ((index < 3 && value > 1) || ratio > 0.5) {
         const hotColors = [
             { color: '#f472b6', glow: 'rgba(244, 114, 182, 0.5)' },
@@ -44,17 +48,30 @@ const getWordStyle = (value: number, maxValue: number, index: number) => {
             { color: '#f97316', glow: 'rgba(249, 115, 22, 0.5)' },
         ];
         const c = hotColors[index % hotColors.length];
-        return { color: c.color, glowColor: c.glow, isTop: false, isHot: true };
+        return { color: c.color, glowColor: c.glow, isTop: false, isHot: true, isOutline: false };
     }
 
-    const normalColors = [
-        '#c084fc', '#22d3ee', '#34d399', '#60a5fa', '#a3e635', '#e879f9', '#2dd4bf',
-    ];
+    // Top 4-10 - Normal solid colors
+    if (index < 10) {
+        const normalColors = [
+            '#c084fc', '#22d3ee', '#34d399', '#60a5fa', '#a3e635', '#e879f9', '#2dd4bf',
+        ];
+        return {
+            color: normalColors[index % normalColors.length],
+            glowColor: 'transparent',
+            isTop: false,
+            isHot: false,
+            isOutline: false,
+        };
+    }
+
+    // 11+ - Outline style for background depth
     return {
-        color: normalColors[index % normalColors.length],
+        color: 'rgba(150, 150, 180, 0.4)',
         glowColor: 'transparent',
         isTop: false,
         isHot: false,
+        isOutline: true,
     };
 };
 
@@ -71,9 +88,6 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
     const panStart = useRef({ x: 0, y: 0 });
     const lastPinchDistance = useRef<number | null>(null);
 
-    // Vote animation state
-    const [voteAnimations, setVoteAnimations] = useState<{ id: number, text: string, x: number, y: number }[]>([]);
-    const [votingWord, setVotingWord] = useState<string | null>(null);
 
     useEffect(() => {
         const updateDimensions = () => {
@@ -103,42 +117,47 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
         // Truncate long words to ensure they fit
         const processedWords = wordsData.map(w => ({
             ...w,
-            text: w.text.length > 10 ? w.text.slice(0, 10) + '…' : w.text
+            text: w.text.length > 20 ? w.text.slice(0, 20) + '…' : w.text
         }));
 
         const maxValue = Math.max(...processedWords.map((w) => w.value));
         const scaleFactor = Math.min(dimensions.width, dimensions.height) / 400;
-        const minSize = Math.max(12, 14 * scaleFactor);
-        const maxSize = Math.max(40, 70 * scaleFactor); // Smaller max for better fit
+        const minSize = Math.max(10, 12 * scaleFactor);
+        const maxSize = Math.max(32, 50 * scaleFactor); // Smaller for Chinese
+
+        const canvas = document.createElement('canvas');
 
         const layout = cloud<D3Word>()
-            .size([dimensions.width * 0.92, dimensions.height * 0.88])
-            .words(processedWords.slice(0, 60)) // More words allowed
-            .padding(Math.max(4, 6 * scaleFactor))
+            .size([dimensions.width * 0.95, dimensions.height * 0.90])
+            .words(processedWords.slice(0, 60))
+            .padding(2) // Reduce padding for better fit
             .rotate(() => 0)
-            .font('Inter, system-ui, sans-serif')
+            .font('system-ui, -apple-system, sans-serif')
             .fontSize((d) => {
                 const normalized = Math.pow((d.value || 1) / maxValue, 0.5);
-                // Shorter words get larger, longer words get smaller
-                const lengthPenalty = Math.max(0.6, 1 - (d.text?.length || 0) * 0.03);
-                return (minSize + normalized * (maxSize - minSize)) * lengthPenalty;
+                const textLen = d.text?.length || 0;
+                // Stronger penalty for long Chinese text
+                const lengthPenalty = Math.max(0.4, 1 - textLen * 0.04);
+                return Math.max(minSize, (minSize + normalized * (maxSize - minSize)) * lengthPenalty);
             })
             .spiral('archimedean')
-            .on('end', (output) => {
-                const positioned: PositionedWord[] = output.map((word, index) => {
-                    const style = getWordStyle(word.value || 0, maxValue, index);
-                    return {
-                        text: word.text || '',
-                        value: word.value || 0,
-                        x: word.x || 0,
-                        y: word.y || 0,
-                        size: word.size || minSize,
-                        rotate: word.rotate || 0,
-                        ...style,
-                    };
-                });
-                setPositionedWords(positioned);
+            .canvas(() => canvas as HTMLCanvasElement);
+
+        layout.on('end', (output) => {
+            const positioned: PositionedWord[] = output.map((word, index) => {
+                const style = getWordStyle(word.value || 0, maxValue, index, output.length);
+                return {
+                    text: word.text || '',
+                    value: word.value || 0,
+                    x: word.x || 0,
+                    y: word.y || 0,
+                    size: word.size || minSize,
+                    rotate: word.rotate || 0,
+                    ...style,
+                };
             });
+            setPositionedWords(positioned);
+        });
 
         layout.start();
     }, [dimensions]);
@@ -283,7 +302,7 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
     return (
         <div
             ref={containerRef}
-            className="w-full h-full glass rounded-2xl md:rounded-3xl relative overflow-hidden touch-none select-none"
+            className="w-full h-full word-cloud-glass relative overflow-hidden touch-none select-none"
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
@@ -345,9 +364,11 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
                 }}
             >
                 <defs>
+                    {/* Gold glow filter */}
                     <filter id="glow-gold" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur stdDeviation="4" result="blur" />
+                        <feGaussianBlur stdDeviation="6" result="blur" />
                         <feMerge>
+                            <feMergeNode in="blur" />
                             <feMergeNode in="blur" />
                             <feMergeNode in="SourceGraphic" />
                         </feMerge>
@@ -359,6 +380,32 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
                             <feMergeNode in="SourceGraphic" />
                         </feMerge>
                     </filter>
+
+                    {/* Animated gold gradient for Top 1 */}
+                    <linearGradient id="liquid-gold" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#fbbf24">
+                            <animate attributeName="stop-color" values="#fbbf24;#f59e0b;#fcd34d;#fbbf24" dur="3s" repeatCount="indefinite" />
+                        </stop>
+                        <stop offset="50%" stopColor="#f59e0b">
+                            <animate attributeName="stop-color" values="#f59e0b;#fcd34d;#fbbf24;#f59e0b" dur="3s" repeatCount="indefinite" />
+                        </stop>
+                        <stop offset="100%" stopColor="#fcd34d">
+                            <animate attributeName="stop-color" values="#fcd34d;#fbbf24;#f59e0b;#fcd34d" dur="3s" repeatCount="indefinite" />
+                        </stop>
+                    </linearGradient>
+
+                    {/* Animated gradient for Top 2-3 */}
+                    <linearGradient id="liquid-hot" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#00C6FF">
+                            <animate attributeName="stop-color" values="#00C6FF;#0072FF;#9D50BB;#00C6FF" dur="4s" repeatCount="indefinite" />
+                        </stop>
+                        <stop offset="50%" stopColor="#0072FF">
+                            <animate attributeName="stop-color" values="#0072FF;#9D50BB;#F472B6;#0072FF" dur="4s" repeatCount="indefinite" />
+                        </stop>
+                        <stop offset="100%" stopColor="#9D50BB">
+                            <animate attributeName="stop-color" values="#9D50BB;#F472B6;#00C6FF;#9D50BB" dur="4s" repeatCount="indefinite" />
+                        </stop>
+                    </linearGradient>
                 </defs>
 
                 <g transform={`translate(${dimensions.width / 2}, ${dimensions.height / 2})`}>
@@ -387,30 +434,22 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
                                 textAnchor="middle"
                                 dominantBaseline="central"
                                 fontSize={word.size}
-                                fill={word.color}
+                                fill={
+                                    word.isOutline ? 'transparent'
+                                        : word.isTop ? 'url(#liquid-gold)'
+                                            : word.isHot ? 'url(#liquid-hot)'
+                                                : word.color
+                                }
                                 filter={word.isTop ? 'url(#glow-gold)' : word.isHot ? 'url(#glow-hot)' : undefined}
-                                className="word-cloud-text cursor-pointer hover:opacity-80"
+                                className={`word-cloud-text cursor-pointer hover:opacity-80 ${word.isTop ? 'word-top-glow' : ''} ${word.isOutline ? 'tag-outline' : ''}`}
                                 style={{
-                                    fontWeight: word.isTop ? 900 : word.size > 35 ? 800 : 600,
+                                    fontWeight: word.isTop ? 900 : word.size > 35 ? 800 : word.isOutline ? 700 : 600,
                                     textShadow: word.isTop
                                         ? `0 0 20px ${word.glowColor}, 0 0 40px ${word.glowColor}`
                                         : word.isHot
                                             ? `0 0 15px ${word.glowColor}`
                                             : undefined,
-                                    pointerEvents: 'auto',
-                                }}
-                                onClick={async (e) => {
-                                    e.stopPropagation();
-                                    if (votingWord) return;
-                                    setVotingWord(word.text);
-
-                                    // Add +1 animation
-                                    const anim = { id: Date.now(), text: word.text, x: word.x, y: word.y - 20 };
-                                    setVoteAnimations(prev => [...prev, anim]);
-                                    setTimeout(() => setVoteAnimations(prev => prev.filter(a => a.id !== anim.id)), 1000);
-
-                                    await voteWord(sessionId, word.text);
-                                    setVotingWord(null);
+                                    WebkitTextStroke: word.isOutline ? '1px rgba(150, 150, 180, 0.3)' : undefined,
                                 }}
                             >
                                 {word.text}
@@ -418,24 +457,25 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
                         ))}
                     </AnimatePresence>
 
-                    {/* Vote +1 animations */}
-                    <AnimatePresence>
-                        {voteAnimations.map((anim) => (
-                            <motion.text
-                                key={anim.id}
-                                initial={{ opacity: 1, y: anim.y, x: anim.x, scale: 1 }}
-                                animate={{ opacity: 0, y: anim.y - 50, scale: 1.5 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.8, ease: 'easeOut' }}
-                                textAnchor="middle"
-                                fontSize={24}
-                                fill="#22c55e"
-                                fontWeight="bold"
-                            >
-                                +1
-                            </motion.text>
-                        ))}
-                    </AnimatePresence>
+                    {/* Top 1 HUD Decorations - Simplified RANK Label */}
+                    {positionedWords.length > 0 && positionedWords[0].isTop && (
+                        <motion.text
+                            key={`rank-${positionedWords[0].text}`}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 0.8, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.3 }}
+                            x={positionedWords[0].x}
+                            y={positionedWords[0].y + positionedWords[0].size * 0.8}
+                            textAnchor="middle"
+                            fontSize={8}
+                            fill="rgba(0, 255, 200, 0.6)"
+                            fontFamily="monospace"
+                            letterSpacing="1"
+                        >
+                            ⌜ RANK #01 · {positionedWords[0].value} ⌟
+                        </motion.text>
+                    )}
+
                 </g>
             </svg>
 
