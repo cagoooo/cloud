@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import cloud from 'd3-cloud';
-import { useWords, type AggregatedWord } from '../lib/firebase';
+import { useWords, voteWord, type AggregatedWord } from '../lib/firebase';
 
 interface CloudDisplayProps {
     sessionId: string;
@@ -70,6 +70,10 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
     const [isPanning, setIsPanning] = useState(false);
     const panStart = useRef({ x: 0, y: 0 });
     const lastPinchDistance = useRef<number | null>(null);
+
+    // Vote animation state
+    const [voteAnimations, setVoteAnimations] = useState<{ id: number, text: string, x: number, y: number }[]>([]);
+    const [votingWord, setVotingWord] = useState<string | null>(null);
 
     useEffect(() => {
         const updateDimensions = () => {
@@ -377,7 +381,7 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
                                 fontSize={word.size}
                                 fill={word.color}
                                 filter={word.isTop ? 'url(#glow-gold)' : word.isHot ? 'url(#glow-hot)' : undefined}
-                                className="word-cloud-text"
+                                className="word-cloud-text cursor-pointer hover:opacity-80"
                                 style={{
                                     fontWeight: word.isTop ? 900 : word.size > 35 ? 800 : 600,
                                     textShadow: word.isTop
@@ -385,9 +389,42 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
                                         : word.isHot
                                             ? `0 0 15px ${word.glowColor}`
                                             : undefined,
+                                    pointerEvents: 'auto',
+                                }}
+                                onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (votingWord) return;
+                                    setVotingWord(word.text);
+
+                                    // Add +1 animation
+                                    const anim = { id: Date.now(), text: word.text, x: word.x, y: word.y - 20 };
+                                    setVoteAnimations(prev => [...prev, anim]);
+                                    setTimeout(() => setVoteAnimations(prev => prev.filter(a => a.id !== anim.id)), 1000);
+
+                                    await voteWord(sessionId, word.text);
+                                    setVotingWord(null);
                                 }}
                             >
                                 {word.text}
+                            </motion.text>
+                        ))}
+                    </AnimatePresence>
+
+                    {/* Vote +1 animations */}
+                    <AnimatePresence>
+                        {voteAnimations.map((anim) => (
+                            <motion.text
+                                key={anim.id}
+                                initial={{ opacity: 1, y: anim.y, x: anim.x, scale: 1 }}
+                                animate={{ opacity: 0, y: anim.y - 50, scale: 1.5 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.8, ease: 'easeOut' }}
+                                textAnchor="middle"
+                                fontSize={24}
+                                fill="#22c55e"
+                                fontWeight="bold"
+                            >
+                                +1
                             </motion.text>
                         ))}
                     </AnimatePresence>

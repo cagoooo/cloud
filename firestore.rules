@@ -1,24 +1,21 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Word Cloud sessions - public access for anonymous users
+    // Word cloud sessions
     match /sessions/{sessionId}/words/{wordId} {
-      // Allow anyone to read words in a session
+      // Allow anyone to read
       allow read: if true;
       
-      // Allow anyone to create words with validation
+      // Allow anyone to create with valid data
       allow create: if request.resource.data.text is string
                     && request.resource.data.text.size() > 0
                     && request.resource.data.text.size() <= 50;
       
-      // Don't allow updates or deletes
-      allow update, delete: if false;
-    }
-    
-    // Session metadata (optional future use)
-    match /sessions/{sessionId} {
-      allow read: if true;
-      allow write: if false;
+      // Allow anyone to delete (for admin clear function)
+      allow delete: if true;
+      
+      // Allow updates (for voting)
+      allow update: if true;
     }
   }
 }

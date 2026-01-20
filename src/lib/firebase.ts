@@ -63,6 +63,14 @@ export const addWord = async (sessionId: string, text: string): Promise<void> =>
 };
 
 /**
+ * Vote for an existing word (add +1)
+ */
+export const voteWord = async (sessionId: string, text: string): Promise<void> => {
+    // Simply add another entry with the same text to increase the count
+    await addWord(sessionId, text);
+};
+
+/**
  * Real-time hook to get aggregated word frequencies
  * Includes debouncing to prevent UI jitter with high-frequency updates
  */

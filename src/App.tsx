@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import LiquidBackground from './components/LiquidBackground';
 import InputInterface from './components/InputInterface';
 import CloudDisplay from './components/CloudDisplay';
+import AdminPanel from './components/AdminPanel';
 
 function App() {
   const [sessionId, setSessionId] = useState(() => {
@@ -16,9 +17,12 @@ function App() {
   const [isEditingRoom, setIsEditingRoom] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [copied, setCopied] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const cloudRef = useRef<HTMLDivElement>(null);
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(`${window.location.origin}?room=${sessionId}`);
+    navigator.clipboard.writeText(`${window.location.origin}/cloud/?room=${sessionId}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -38,6 +42,17 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // ESC to exit fullscreen
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen]);
+
   const handleRoomChange = () => {
     if (roomInput.trim()) {
       setSessionId(roomInput.trim());
@@ -51,6 +66,30 @@ function App() {
     setSessionId(randomId);
     setIsEditingRoom(false);
   };
+
+  // Fullscreen mode
+  if (isFullscreen) {
+    return (
+      <LiquidBackground>
+        <div className="w-full h-full relative">
+          <div ref={cloudRef} className="w-full h-full">
+            <CloudDisplay sessionId={sessionId} />
+          </div>
+          {/* Exit button */}
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+            onClick={() => setIsFullscreen(false)}
+            className="absolute bottom-4 right-4 glass px-4 py-2 rounded-xl text-white/60 hover:text-white flex items-center gap-2 text-sm"
+          >
+            <span>ESC</span>
+            <span>退出全螢幕</span>
+          </motion.button>
+        </div>
+      </LiquidBackground>
+    );
+  }
 
   return (
     <LiquidBackground>
@@ -120,34 +159,48 @@ function App() {
                   )}
                 </div>
 
-                {/* Copy link button */}
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleCopyLink}
-                  className={`flex items-center gap-2 md:gap-3 px-3 md:px-5 py-2 md:py-3 rounded-lg md:rounded-xl font-medium transition-all duration-300 flex-shrink-0 ${copied
-                      ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30'
-                      : 'btn-secondary text-white/80 hover:text-white'
-                    }`}
-                >
-                  {copied ? (
-                    <>
-                      <motion.span
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="text-lg md:text-xl"
-                      >
-                        ✓
-                      </motion.span>
-                      <span className="text-sm md:text-base">已複製！</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-lg md:text-xl">🔗</span>
-                      <span className="hidden sm:inline text-sm md:text-base">複製連結</span>
-                    </>
-                  )}
-                </motion.button>
+                {/* Action buttons */}
+                <div className="flex items-center gap-2">
+                  {/* Copy link button */}
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleCopyLink}
+                    className={`flex items-center gap-2 md:gap-3 px-3 md:px-5 py-2 md:py-3 rounded-lg md:rounded-xl font-medium transition-all duration-300 flex-shrink-0 ${copied
+                        ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'btn-secondary text-white/80 hover:text-white'
+                      }`}
+                  >
+                    {copied ? (
+                      <>
+                        <motion.span
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="text-lg md:text-xl"
+                        >
+                          ✓
+                        </motion.span>
+                        <span className="hidden sm:inline text-sm md:text-base">已複製！</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-lg md:text-xl">🔗</span>
+                        <span className="hidden sm:inline text-sm md:text-base">複製連結</span>
+                      </>
+                    )}
+                  </motion.button>
+
+                  {/* Admin button */}
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowAdmin(true)}
+                    className="btn-secondary p-2 md:p-3 rounded-lg md:rounded-xl text-lg md:text-xl"
+                    title="管理員"
+                  >
+                    🔧
+                  </motion.button>
+                </div>
               </div>
             </div>
           </div>
@@ -159,7 +212,7 @@ function App() {
             // Mobile: Vertical stack - Cloud on top, Input on bottom
             <>
               {/* Cloud display - top half */}
-              <div className="flex-1 min-h-0">
+              <div ref={cloudRef} className="flex-1 min-h-0">
                 <CloudDisplay sessionId={sessionId} />
               </div>
 
@@ -171,7 +224,7 @@ function App() {
           ) : (
             // Desktop: Side by side
             <>
-              <div className="flex-1 min-w-0 h-full">
+              <div ref={cloudRef} className="flex-1 min-w-0 h-full">
                 <CloudDisplay sessionId={sessionId} />
               </div>
               <div className="w-[340px] lg:w-[400px] xl:w-[420px] flex-shrink-0 h-full flex items-center justify-center overflow-y-auto">
@@ -181,6 +234,15 @@ function App() {
           )}
         </main>
       </div>
+
+      {/* Admin Panel Modal */}
+      <AdminPanel
+        sessionId={sessionId}
+        isOpen={showAdmin}
+        onClose={() => setShowAdmin(false)}
+        cloudRef={cloudRef}
+        onFullscreen={() => setIsFullscreen(true)}
+      />
     </LiquidBackground>
   );
 }
