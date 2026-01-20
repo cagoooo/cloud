@@ -100,20 +100,28 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
             return;
         }
 
-        const maxValue = Math.max(...wordsData.map((w) => w.value));
+        // Truncate long words to ensure they fit
+        const processedWords = wordsData.map(w => ({
+            ...w,
+            text: w.text.length > 10 ? w.text.slice(0, 10) + '…' : w.text
+        }));
+
+        const maxValue = Math.max(...processedWords.map((w) => w.value));
         const scaleFactor = Math.min(dimensions.width, dimensions.height) / 400;
         const minSize = Math.max(12, 14 * scaleFactor);
-        const maxSize = Math.max(50, 90 * scaleFactor);
+        const maxSize = Math.max(40, 70 * scaleFactor); // Smaller max for better fit
 
         const layout = cloud<D3Word>()
             .size([dimensions.width * 0.92, dimensions.height * 0.88])
-            .words(wordsData.slice(0, 50))
-            .padding(Math.max(5, 8 * scaleFactor))
+            .words(processedWords.slice(0, 60)) // More words allowed
+            .padding(Math.max(4, 6 * scaleFactor))
             .rotate(() => 0)
             .font('Inter, system-ui, sans-serif')
             .fontSize((d) => {
                 const normalized = Math.pow((d.value || 1) / maxValue, 0.5);
-                return minSize + normalized * (maxSize - minSize);
+                // Shorter words get larger, longer words get smaller
+                const lengthPenalty = Math.max(0.6, 1 - (d.text?.length || 0) * 0.03);
+                return (minSize + normalized * (maxSize - minSize)) * lengthPenalty;
             })
             .spiral('archimedean')
             .on('end', (output) => {

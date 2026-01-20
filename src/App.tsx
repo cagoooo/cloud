@@ -173,14 +173,21 @@ function App() {
                     whileTap={{ scale: 0.95 }}
                     onClick={handleCopyLink}
                     className={`flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 rounded-lg md:rounded-xl font-medium transition-all duration-300 flex-shrink-0 ${copied
-                        ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30'
-                        : 'btn-secondary text-white/80 hover:text-white'
+                      ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/40'
+                      : 'btn-secondary text-white/80 hover:text-white'
                       }`}
                   >
                     {copied ? (
                       <>
-                        <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-lg">✓</motion.span>
-                        <span className="hidden sm:inline text-sm">已複製</span>
+                        <motion.span
+                          initial={{ scale: 0, rotate: -180 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          transition={{ type: 'spring', stiffness: 300 }}
+                          className="text-lg"
+                        >
+                          ✓
+                        </motion.span>
+                        <span className="hidden sm:inline text-sm font-bold">已複製!</span>
                       </>
                     ) : (
                       <>
