@@ -4,6 +4,8 @@ import LiquidBackground from './components/LiquidBackground';
 import InputInterface from './components/InputInterface';
 import CloudDisplay from './components/CloudDisplay';
 import AdminPanel from './components/AdminPanel';
+import QRCodeModal from './components/QRCodeModal';
+import { usePresence } from './lib/presence';
 
 function App() {
   const [sessionId, setSessionId] = useState(() => {
@@ -18,8 +20,12 @@ function App() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [copied, setCopied] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showQRCode, setShowQRCode] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const cloudRef = useRef<HTMLDivElement>(null);
+
+  // Track online users
+  const { onlineCount } = usePresence(sessionId);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(`${window.location.origin}/cloud/?room=${sessionId}`);
@@ -161,36 +167,41 @@ function App() {
 
                 {/* Action buttons */}
                 <div className="flex items-center gap-2">
-                  {/* Copy link button */}
+                  {/* Copy link */}
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={handleCopyLink}
-                    className={`flex items-center gap-2 md:gap-3 px-3 md:px-5 py-2 md:py-3 rounded-lg md:rounded-xl font-medium transition-all duration-300 flex-shrink-0 ${copied
+                    className={`flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 rounded-lg md:rounded-xl font-medium transition-all duration-300 flex-shrink-0 ${copied
                         ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30'
                         : 'btn-secondary text-white/80 hover:text-white'
                       }`}
                   >
                     {copied ? (
                       <>
-                        <motion.span
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="text-lg md:text-xl"
-                        >
-                          ✓
-                        </motion.span>
-                        <span className="hidden sm:inline text-sm md:text-base">已複製！</span>
+                        <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-lg">✓</motion.span>
+                        <span className="hidden sm:inline text-sm">已複製</span>
                       </>
                     ) : (
                       <>
-                        <span className="text-lg md:text-xl">🔗</span>
-                        <span className="hidden sm:inline text-sm md:text-base">複製連結</span>
+                        <span className="text-lg">🔗</span>
+                        <span className="hidden sm:inline text-sm">複製</span>
                       </>
                     )}
                   </motion.button>
 
-                  {/* Admin button */}
+                  {/* QR Code */}
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowQRCode(true)}
+                    className="btn-secondary p-2 md:p-3 rounded-lg md:rounded-xl text-lg md:text-xl"
+                    title="QR Code"
+                  >
+                    📱
+                  </motion.button>
+
+                  {/* Admin */}
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -200,29 +211,34 @@ function App() {
                   >
                     🔧
                   </motion.button>
+
+                  {/* Online count */}
+                  <div className="hidden sm:flex items-center gap-2 px-3 py-2 glass rounded-lg">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-white font-medium text-sm">{onlineCount}</span>
+                    <span className="text-white/50 text-xs">人在線</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </header>
 
-        {/* Main content - SPLIT VIEW FOR MOBILE */}
+        {/* Main content */}
         <main className="flex-1 min-h-0 overflow-hidden flex flex-col lg:flex-row gap-2 md:gap-4 lg:gap-6 p-2 md:p-4 lg:p-6">
           {isMobile ? (
-            // Mobile: Vertical stack - Cloud on top, Input on bottom
             <>
-              {/* Cloud display - top half */}
               <div ref={cloudRef} className="flex-1 min-h-0">
                 <CloudDisplay sessionId={sessionId} />
               </div>
-
-              {/* Input interface - bottom, scrollable */}
               <div className="flex-shrink-0">
                 <InputInterfaceMobile sessionId={sessionId} />
               </div>
             </>
           ) : (
-            // Desktop: Side by side
             <>
               <div ref={cloudRef} className="flex-1 min-w-0 h-full">
                 <CloudDisplay sessionId={sessionId} />
@@ -235,13 +251,18 @@ function App() {
         </main>
       </div>
 
-      {/* Admin Panel Modal */}
+      {/* Modals */}
       <AdminPanel
         sessionId={sessionId}
         isOpen={showAdmin}
         onClose={() => setShowAdmin(false)}
         cloudRef={cloudRef}
         onFullscreen={() => setIsFullscreen(true)}
+      />
+      <QRCodeModal
+        sessionId={sessionId}
+        isOpen={showQRCode}
+        onClose={() => setShowQRCode(false)}
       />
     </LiquidBackground>
   );
@@ -280,7 +301,6 @@ function InputInterfaceMobile({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="glass-strong rounded-2xl p-4">
-      {/* Input row */}
       <form onSubmit={handleSubmit} className="flex gap-3 mb-4">
         <input
           type="text"
@@ -315,7 +335,6 @@ function InputInterfaceMobile({ sessionId }: { sessionId: string }) {
         </motion.button>
       </form>
 
-      {/* Quick buttons - LARGER */}
       <div className="grid grid-cols-4 gap-2">
         {quickWords.map((word) => (
           <motion.button
