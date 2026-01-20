@@ -104,7 +104,6 @@ const getWordStyle = (value: number, maxValue: number, index: number, totalWords
         opacity: 0.3,
     };
 };
-};
 
 const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
