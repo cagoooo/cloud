@@ -53,7 +53,7 @@ export const usePresence = (sessionId: string) => {
         const connectedRef = ref(rtdb, '.info/connected');
 
         // Monitor connection state
-        const connectedListener = onValue(connectedRef, (snapshot) => {
+        onValue(connectedRef, (snapshot) => {
             if (snapshot.val() === true) {
                 setIsConnected(true);
 
@@ -71,7 +71,7 @@ export const usePresence = (sessionId: string) => {
         });
 
         // Count online users
-        const roomListener = onValue(roomRef, (snapshot) => {
+        onValue(roomRef, (snapshot) => {
             if (snapshot.exists()) {
                 const users = snapshot.val();
                 const count = Object.keys(users).length;

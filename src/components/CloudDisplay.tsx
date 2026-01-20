@@ -39,11 +39,7 @@ const neonPalette = [
     '#4ADE80', // Emerald
 ];
 
-const getWordStyle = (value: number, maxValue: number, index: number, totalWords: number) => {
-    const ratio = value / maxValue;
-
-    // Calculate dynamic opacity based on weight
-    const baseOpacity = 0.4 + (ratio * 0.6); // 0.4 to 1.0
+const getWordStyle = (value: number, _maxValue: number, index: number, _totalWords: number) => {
 
     // Top 1 - Gold crown with maximum glow
     if (index === 0 && value > 1) {

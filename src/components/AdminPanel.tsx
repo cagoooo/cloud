@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -201,8 +201,8 @@ const AdminPanel = ({ sessionId, isOpen, onClose, cloudRef, onFullscreen }: Admi
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         exit={{ opacity: 0, y: -10, scale: 0.95 }}
                                         className={`px-5 py-4 rounded-xl text-center font-medium ${message.type === 'success'
-                                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                                : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                            : 'bg-red-500/20 text-red-400 border border-red-500/30'
                                             }`}
                                     >
                                         {message.text}

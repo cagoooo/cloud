@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import LiquidBackground from './components/LiquidBackground';
 import InputInterface from './components/InputInterface';
 import CloudDisplay from './components/CloudDisplay';
