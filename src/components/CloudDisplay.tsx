@@ -122,25 +122,30 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
 
         const maxValue = Math.max(...processedWords.map((w) => w.value));
         const scaleFactor = Math.min(dimensions.width, dimensions.height) / 400;
-        const minSize = Math.max(10, 12 * scaleFactor);
-        const maxSize = Math.max(32, 50 * scaleFactor); // Smaller for Chinese
+        const minSize = Math.max(12, 14 * scaleFactor);
+        const maxSize = Math.max(28, 45 * scaleFactor);
 
+        // Create canvas with proper font for accurate measurement
         const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            ctx.font = '16px system-ui, -apple-system, sans-serif';
+        }
 
         const layout = cloud<D3Word>()
-            .size([dimensions.width * 0.95, dimensions.height * 0.90])
-            .words(processedWords.slice(0, 60))
-            .padding(2) // Reduce padding for better fit
+            .size([dimensions.width * 0.88, dimensions.height * 0.82])
+            .words(processedWords.slice(0, 50))
+            .padding(8) // Increased padding to prevent overlap
             .rotate(() => 0)
             .font('system-ui, -apple-system, sans-serif')
             .fontSize((d) => {
                 const normalized = Math.pow((d.value || 1) / maxValue, 0.5);
                 const textLen = d.text?.length || 0;
                 // Stronger penalty for long Chinese text
-                const lengthPenalty = Math.max(0.4, 1 - textLen * 0.04);
+                const lengthPenalty = Math.max(0.35, 1 - textLen * 0.05);
                 return Math.max(minSize, (minSize + normalized * (maxSize - minSize)) * lengthPenalty);
             })
-            .spiral('archimedean')
+            .spiral('rectangular') // Use rectangular spiral for better space utilization
             .canvas(() => canvas as HTMLCanvasElement);
 
         layout.on('end', (output) => {
