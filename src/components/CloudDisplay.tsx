@@ -306,24 +306,47 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
 
     if (words.length === 0) {
         return (
-            <div className="w-full h-full glass rounded-2xl md:rounded-3xl flex items-center justify-center">
+            <div className="w-full h-full word-cloud-glass flex items-center justify-center relative overflow-hidden">
+                {/* Radar scan effect */}
+                <motion.div
+                    className="absolute inset-0 opacity-20"
+                    style={{
+                        background: 'conic-gradient(from 0deg, transparent 0%, rgba(0, 255, 200, 0.3) 10%, transparent 20%)',
+                    }}
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+                />
+
+                {/* Grid pattern */}
+                <div
+                    className="absolute inset-0 opacity-10"
+                    style={{
+                        backgroundImage: 'linear-gradient(rgba(0,255,200,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,200,0.2) 1px, transparent 1px)',
+                        backgroundSize: '40px 40px',
+                    }}
+                />
+
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="text-center px-4"
+                    className="text-center px-4 z-10"
                 >
+                    {/* Breathing brain/cloud icon */}
                     <motion.div
-                        className="text-5xl md:text-6xl lg:text-7xl mb-4"
-                        animate={{ y: [0, -15, 0] }}
+                        className="text-6xl md:text-7xl lg:text-8xl mb-6"
+                        animate={{
+                            scale: [1, 1.1, 1],
+                            opacity: [0.4, 0.8, 0.4],
+                        }}
                         transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                     >
-                        ☁️
+                        🧠
                     </motion.div>
-                    <h3 className="text-white/80 text-lg md:text-xl lg:text-2xl font-semibold mb-2">
-                        等待詞彙
+                    <h3 className="text-cyan-400/80 text-lg md:text-xl lg:text-2xl font-semibold mb-2 font-mono tracking-wider">
+                        NEURAL SYNC READY
                     </h3>
-                    <p className="text-white/40 text-xs md:text-sm">
-                        送出文字讓文字雲動起來！
+                    <p className="text-white/40 text-xs md:text-sm font-mono">
+                        [ Awaiting data input... ]
                     </p>
                 </motion.div>
             </div>
@@ -344,32 +367,49 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
             onTouchEnd={handleTouchEnd}
             style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
         >
-            {/* Zoom controls */}
-            <div className="absolute top-3 right-3 z-20 flex gap-2">
+            {/* Floating HUD Control Capsule */}
+            <div className="absolute top-3 right-3 z-20 flex items-center gap-1 p-1 bg-black/50 backdrop-blur-md rounded-full border border-white/10 shadow-lg">
+                {/* Zoom In */}
                 <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => setTransform((prev) => ({ ...prev, scale: Math.min(prev.scale * 1.2, 3) }))}
-                    className="glass w-10 h-10 rounded-xl flex items-center justify-center text-white text-xl font-bold hover:bg-white/20"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-cyan-400 hover:bg-white/10 transition-colors"
+                    title="放大"
                 >
-                    +
+                    <span className="text-lg font-bold">+</span>
                 </motion.button>
+                {/* Zoom Out */}
                 <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => setTransform((prev) => ({ ...prev, scale: Math.max(prev.scale * 0.8, 0.5) }))}
-                    className="glass w-10 h-10 rounded-xl flex items-center justify-center text-white text-xl font-bold hover:bg-white/20"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-cyan-400 hover:bg-white/10 transition-colors"
+                    title="縮小"
                 >
-                    −
+                    <span className="text-lg font-bold">−</span>
                 </motion.button>
+                {/* Divider */}
+                <div className="w-px h-5 bg-white/20" />
+                {/* Reset */}
                 <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={resetTransform}
-                    className="glass w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg hover:bg-white/20"
-                    title="重置"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-pink-400 hover:bg-white/10 transition-colors"
+                    title="重置視角"
                 >
-                    ⟲
+                    <span className="text-base">⟲</span>
+                </motion.button>
+                {/* Refresh Layout */}
+                <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => generateCloud(words)}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-emerald-400 hover:bg-white/10 transition-colors"
+                    title="重新佈局"
+                >
+                    <span className="text-base">🔄</span>
                 </motion.button>
             </div>
 
@@ -510,6 +550,13 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
 
                 </g>
             </svg>
+
+            {/* Heatmap Legend - Weight indicator */}
+            <div className="absolute bottom-20 md:bottom-24 left-4 md:left-6 z-10 flex items-center gap-2 text-[10px] text-white/40 font-mono tracking-widest opacity-60 hover:opacity-100 transition-opacity">
+                <span>LOW</span>
+                <div className="w-20 h-1.5 rounded-full bg-gradient-to-r from-gray-600 via-cyan-500 to-amber-400 shadow-sm" />
+                <span>HIGH</span>
+            </div>
 
             {/* Stats bar */}
             <motion.div
