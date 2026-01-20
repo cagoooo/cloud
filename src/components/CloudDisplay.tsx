@@ -24,55 +24,86 @@ interface PositionedWord extends AggregatedWord {
     isTop: boolean;
     glowColor: string;
     isOutline: boolean;
+    opacity: number;
 }
+
+// Cyberpunk-style color palette
+const neonPalette = [
+    '#00F0FF', // Neon Cyan
+    '#FF00AA', // Neon Pink  
+    '#00FF99', // Neon Green
+    '#FFE600', // Cyber Yellow
+    '#A855F7', // Electric Purple
+    '#38BDF8', // Sky Blue
+    '#FB7185', // Rose
+    '#4ADE80', // Emerald
+];
 
 const getWordStyle = (value: number, maxValue: number, index: number, totalWords: number) => {
     const ratio = value / maxValue;
 
-    // Top 1 - Gold with breathing glow
+    // Calculate dynamic opacity based on weight
+    const baseOpacity = 0.4 + (ratio * 0.6); // 0.4 to 1.0
+
+    // Top 1 - Gold crown with maximum glow
     if (index === 0 && value > 1) {
         return {
             color: '#fbbf24',
-            glowColor: 'rgba(251, 191, 36, 0.6)',
+            glowColor: 'rgba(251, 191, 36, 0.7)',
             isTop: true,
             isHot: true,
             isOutline: false,
+            opacity: 1,
         };
     }
 
-    // Top 2-3 - Hot colors
-    if ((index < 3 && value > 1) || ratio > 0.5) {
+    // Top 2-3 - Neon hot colors (fixed for consistency)
+    if (index < 3 && value > 1) {
         const hotColors = [
-            { color: '#f472b6', glow: 'rgba(244, 114, 182, 0.5)' },
-            { color: '#fb7185', glow: 'rgba(251, 113, 133, 0.5)' },
-            { color: '#f97316', glow: 'rgba(249, 115, 22, 0.5)' },
+            { color: '#00F0FF', glow: 'rgba(0, 240, 255, 0.5)' },   // Cyan
+            { color: '#FF00AA', glow: 'rgba(255, 0, 170, 0.5)' },   // Pink
         ];
-        const c = hotColors[index % hotColors.length];
-        return { color: c.color, glowColor: c.glow, isTop: false, isHot: true, isOutline: false };
+        const c = hotColors[(index - 1) % hotColors.length];
+        return { color: c.color, glowColor: c.glow, isTop: false, isHot: true, isOutline: false, opacity: 1 };
     }
 
-    // Top 4-10 - Normal solid colors
+    // Top 4-10 - Coordinated random from palette (high opacity)
     if (index < 10) {
-        const normalColors = [
-            '#c084fc', '#22d3ee', '#34d399', '#60a5fa', '#a3e635', '#e879f9', '#2dd4bf',
-        ];
+        // Use index as seed for consistent but varied colors
+        const colorIndex = (index * 7) % neonPalette.length;
         return {
-            color: normalColors[index % normalColors.length],
+            color: neonPalette[colorIndex],
             glowColor: 'transparent',
             isTop: false,
             isHot: false,
             isOutline: false,
+            opacity: 0.9,
         };
     }
 
-    // 11+ - Outline style for background depth
+    // 11-20 - Medium layer (lower opacity, still solid)
+    if (index < 20) {
+        const colorIndex = (index * 5) % neonPalette.length;
+        return {
+            color: neonPalette[colorIndex],
+            glowColor: 'transparent',
+            isTop: false,
+            isHot: false,
+            isOutline: false,
+            opacity: 0.55,
+        };
+    }
+
+    // 21+ - Background layer (outline style for depth)
     return {
-        color: 'rgba(150, 150, 180, 0.4)',
+        color: 'rgba(150, 150, 180, 0.35)',
         glowColor: 'transparent',
         isTop: false,
         isHot: false,
         isOutline: true,
+        opacity: 0.3,
     };
+};
 };
 
 const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
@@ -455,6 +486,7 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
                                             ? `0 0 15px ${word.glowColor}`
                                             : undefined,
                                     WebkitTextStroke: word.isOutline ? '1px rgba(150, 150, 180, 0.3)' : undefined,
+                                    opacity: word.opacity,
                                 }}
                             >
                                 {word.text}
