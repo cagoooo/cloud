@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import cloud from 'd3-cloud';
 import { useWords, type AggregatedWord } from '../lib/firebase';
 
@@ -25,6 +25,7 @@ interface PositionedWord extends AggregatedWord {
     glowColor: string;
     isOutline: boolean;
     opacity: number;
+    fontWeight: number;
 }
 
 // Cyberpunk-style color palette
@@ -39,46 +40,48 @@ const neonPalette = [
     '#4ADE80', // Emerald
 ];
 
+// V8: 增強的樣式分層系統
 const getWordStyle = (value: number, _maxValue: number, index: number, _totalWords: number) => {
 
-    // Top 1 - Gold crown with maximum glow
+    // Top 1 - 金色王冠，最大發光，脈動動畫
     if (index === 0 && value > 1) {
         return {
             color: '#fbbf24',
-            glowColor: 'rgba(251, 191, 36, 0.7)',
+            glowColor: 'rgba(251, 191, 36, 0.8)',
             isTop: true,
             isHot: true,
             isOutline: false,
             opacity: 1,
+            fontWeight: 900,
         };
     }
 
-    // Top 2-3 - Neon hot colors (fixed for consistency)
+    // Top 2-3 - 霓虹熱門色，強發光
     if (index < 3 && value > 1) {
         const hotColors = [
-            { color: '#00F0FF', glow: 'rgba(0, 240, 255, 0.5)' },   // Cyan
-            { color: '#FF00AA', glow: 'rgba(255, 0, 170, 0.5)' },   // Pink
+            { color: '#00F0FF', glow: 'rgba(0, 240, 255, 0.6)' },   // 青色
+            { color: '#FF00AA', glow: 'rgba(255, 0, 170, 0.6)' },   // 粉色
         ];
         const c = hotColors[(index - 1) % hotColors.length];
-        return { color: c.color, glowColor: c.glow, isTop: false, isHot: true, isOutline: false, opacity: 1 };
+        return { color: c.color, glowColor: c.glow, isTop: false, isHot: true, isOutline: false, opacity: 1, fontWeight: 800 };
     }
 
-    // Top 4-10 - Coordinated random from palette (high opacity)
-    if (index < 10) {
-        // Use index as seed for consistent but varied colors
+    // Top 4-6 - 次熱門，微弱發光
+    if (index < 6) {
         const colorIndex = (index * 7) % neonPalette.length;
         return {
             color: neonPalette[colorIndex],
-            glowColor: 'transparent',
+            glowColor: `${neonPalette[colorIndex]}40`, // 25% 發光
             isTop: false,
             isHot: false,
             isOutline: false,
-            opacity: 0.9,
+            opacity: 0.95,
+            fontWeight: 700,
         };
     }
 
-    // 11-20 - Medium layer (lower opacity, still solid)
-    if (index < 20) {
+    // Top 7-15 - 中層，無發光
+    if (index < 15) {
         const colorIndex = (index * 5) % neonPalette.length;
         return {
             color: neonPalette[colorIndex],
@@ -86,11 +89,26 @@ const getWordStyle = (value: number, _maxValue: number, index: number, _totalWor
             isTop: false,
             isHot: false,
             isOutline: false,
-            opacity: 0.55,
+            opacity: 0.75,
+            fontWeight: 600,
         };
     }
 
-    // 21+ - Background layer (outline style for depth)
+    // 16-25 - 背景層，半透明
+    if (index < 25) {
+        const colorIndex = (index * 3) % neonPalette.length;
+        return {
+            color: neonPalette[colorIndex],
+            glowColor: 'transparent',
+            isTop: false,
+            isHot: false,
+            isOutline: false,
+            opacity: 0.45,
+            fontWeight: 500,
+        };
+    }
+
+    // 26+ - 輪廓層，最遠景
     return {
         color: 'rgba(150, 150, 180, 0.35)',
         glowColor: 'transparent',
@@ -98,6 +116,7 @@ const getWordStyle = (value: number, _maxValue: number, index: number, _totalWor
         isHot: false,
         isOutline: true,
         opacity: 0.3,
+        fontWeight: 400,
     };
 };
 
@@ -146,32 +165,81 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
             text: w.text.length > 20 ? w.text.slice(0, 20) + '…' : w.text
         }));
 
+        const wordCount = processedWords.length;
         const maxValue = Math.max(...processedWords.map((w) => w.value));
         const scaleFactor = Math.min(dimensions.width, dimensions.height) / 400;
-        const minSize = Math.max(12, 14 * scaleFactor);
-        const maxSize = Math.max(28, 45 * scaleFactor);
 
-        // Create canvas with proper font for accurate measurement
+        // V8: 動態尺寸範圍 - 根據詞彙數量調整
+        let minSize: number, maxSize: number;
+        if (wordCount <= 5) {
+            minSize = 18 * scaleFactor;
+            maxSize = 55 * scaleFactor;
+        } else if (wordCount <= 15) {
+            minSize = 14 * scaleFactor;
+            maxSize = 50 * scaleFactor;
+        } else if (wordCount <= 30) {
+            minSize = 12 * scaleFactor;
+            maxSize = 45 * scaleFactor;
+        } else {
+            minSize = 10 * scaleFactor;
+            maxSize = 40 * scaleFactor;
+        }
+        minSize = Math.max(10, minSize);
+        maxSize = Math.max(25, maxSize);
+
+        // Create canvas with proper size and font for accurate CJK measurement
         const canvas = document.createElement('canvas');
+        canvas.width = dimensions.width;
+        canvas.height = dimensions.height;
         const ctx = canvas.getContext('2d');
         if (ctx) {
-            ctx.font = '16px system-ui, -apple-system, sans-serif';
+            ctx.font = 'bold 32px "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif';
         }
 
+        // V8: 檢測中文字符比例的輔助函數
+        const getCJKRatio = (text: string): number => {
+            const cjkChars = (text.match(/[\u4e00-\u9fff\u3400-\u4dbf]/g) || []).length;
+            return text.length > 0 ? cjkChars / text.length : 0;
+        };
+
         const layout = cloud<D3Word>()
-            .size([dimensions.width * 0.88, dimensions.height * 0.82])
+            .size([dimensions.width * 0.85, dimensions.height * 0.78])
             .words(processedWords.slice(0, 50))
-            .padding(8) // Increased padding to prevent overlap
-            .rotate(() => 0)
-            .font('system-ui, -apple-system, sans-serif')
-            .fontSize((d) => {
-                const normalized = Math.pow((d.value || 1) / maxValue, 0.5);
-                const textLen = d.text?.length || 0;
-                // Stronger penalty for long Chinese text
-                const lengthPenalty = Math.max(0.35, 1 - textLen * 0.05);
-                return Math.max(minSize, (minSize + normalized * (maxSize - minSize)) * lengthPenalty);
+            // V8: 動態 padding - 中文越多 padding 越大
+            .padding((d) => {
+                const cjkRatio = getCJKRatio(d.text || '');
+                return 15 + cjkRatio * 15; // 15-30 之間
             })
-            .spiral('rectangular') // Use rectangular spiral for better space utilization
+            .rotate(() => 0)
+            .font('"Microsoft JhengHei", "PingFang TC", system-ui, sans-serif')
+            // V8: 優化的 fontSize 計算 - 排名加成 + 隨機微調
+            .fontSize((d) => {
+                // 找到這個詞的排名
+                const wordIndex = processedWords.findIndex(w => w.text === d.text);
+
+                // 基礎尺寸（基於票數的正規化）
+                const valueNormalized = Math.pow((d.value || 1) / maxValue, 0.5);
+                const baseSize = minSize + valueNormalized * (maxSize - minSize);
+
+                // V8: 排名加成 - 前幾名獲得尺寸獎勵
+                let rankBonus = 1.0;
+                if (wordIndex === 0) rankBonus = 1.30;       // 第 1 名 +30%
+                else if (wordIndex === 1) rankBonus = 1.20;  // 第 2 名 +20%
+                else if (wordIndex === 2) rankBonus = 1.15;  // 第 3 名 +15%
+                else if (wordIndex < 5) rankBonus = 1.10;    // 第 4-5 名 +10%
+                else if (wordIndex < 10) rankBonus = 1.05;   // 第 6-10 名 +5%
+                else rankBonus = Math.max(0.75, 1.0 - (wordIndex - 10) * 0.015); // 10 名後逐漸縮小
+
+                // V8: 長度懲罰（長文字縮小）
+                const textLen = d.text?.length || 0;
+                const lengthPenalty = Math.max(0.4, 1 - textLen * 0.04);
+
+                // V8: 隨機微調 ±5%（讓相同票數的詞也有差異）
+                const randomJitter = 0.95 + Math.random() * 0.1;
+
+                return Math.max(minSize, baseSize * rankBonus * lengthPenalty * randomJitter);
+            })
+            .spiral('archimedean')
             .canvas(() => canvas as HTMLCanvasElement);
 
         layout.on('end', (output) => {
@@ -480,130 +548,73 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
                 </defs>
 
                 <g transform={`translate(${dimensions.width / 2}, ${dimensions.height / 2})`}>
-                    <AnimatePresence mode="popLayout">
-                        {positionedWords.map((word) => (
-                            <motion.text
-                                key={word.text}
-                                initial={{ opacity: 0, scale: 0 }}
-                                animate={{
-                                    opacity: 1,
-                                    scale: word.isTop ? [1, 1.05, 1] : 1,
-                                    x: word.x,
-                                    y: word.y,
-                                }}
-                                exit={{ opacity: 0, scale: 0 }}
-                                transition={{
-                                    type: 'spring',
-                                    stiffness: 100,
-                                    damping: 15,
-                                    scale: word.isTop ? {
-                                        duration: 2,
-                                        repeat: Infinity,
-                                        ease: 'easeInOut',
-                                    } : undefined,
-                                }}
-                                textAnchor="middle"
-                                dominantBaseline="central"
-                                fontSize={word.size}
-                                fill={
-                                    word.isOutline ? 'transparent'
-                                        : word.isTop ? 'url(#liquid-gold)'
-                                            : word.isHot ? 'url(#liquid-hot)'
-                                                : word.color
-                                }
-                                filter={word.isTop ? 'url(#glow-gold)' : word.isHot ? 'url(#glow-hot)' : undefined}
-                                className={`word-cloud-text cursor-pointer hover:opacity-80 ${word.isTop ? 'word-top-glow' : ''} ${word.isOutline ? 'tag-outline' : ''}`}
-                                style={{
-                                    fontWeight: word.isTop ? 900 : word.size > 35 ? 800 : word.isOutline ? 700 : 600,
-                                    textShadow: word.isTop
-                                        ? `0 0 20px ${word.glowColor}, 0 0 40px ${word.glowColor}`
-                                        : word.isHot
-                                            ? `0 0 15px ${word.glowColor}`
-                                            : undefined,
-                                    WebkitTextStroke: word.isOutline ? '1px rgba(150, 150, 180, 0.3)' : undefined,
-                                    opacity: word.opacity,
-                                }}
-                            >
-                                {word.text}
-                            </motion.text>
-                        ))}
-                    </AnimatePresence>
-
-                    {/* Top 1 HUD Decorations - Simplified RANK Label */}
-                    {positionedWords.length > 0 && positionedWords[0].isTop && (
+                    {positionedWords.map((word) => (
                         <motion.text
-                            key={`rank-${positionedWords[0].text}`}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 0.8, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.3 }}
-                            x={positionedWords[0].x}
-                            y={positionedWords[0].y + positionedWords[0].size * 0.8}
+                            key={word.text}
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            animate={{
+                                opacity: 1,
+                                scale: word.isTop ? [1, 1.05, 1] : 1,
+                                x: word.x,
+                                y: word.y,
+                            }}
+                            transition={{
+                                type: 'spring',
+                                stiffness: 80,
+                                damping: 20,
+                                scale: word.isTop ? {
+                                    duration: 2,
+                                    repeat: Infinity,
+                                    ease: 'easeInOut',
+                                } : undefined,
+                            }}
                             textAnchor="middle"
-                            fontSize={8}
-                            fill="rgba(0, 255, 200, 0.6)"
-                            fontFamily="monospace"
-                            letterSpacing="1"
+                            dominantBaseline="central"
+                            fontSize={word.size}
+                            fill={
+                                word.isOutline ? 'transparent'
+                                    : word.isTop ? 'url(#liquid-gold)'
+                                        : word.isHot ? 'url(#liquid-hot)'
+                                            : word.color
+                            }
+                            filter={word.isTop ? 'url(#glow-gold)' : word.isHot ? 'url(#glow-hot)' : undefined}
+                            className={`word-cloud-text cursor-pointer hover:opacity-80 ${word.isTop ? 'word-top-glow' : ''} ${word.isOutline ? 'tag-outline' : ''}`}
+                            style={{
+                                fontWeight: word.fontWeight,
+                                textShadow: word.isTop
+                                    ? `0 0 20px ${word.glowColor}, 0 0 40px ${word.glowColor}`
+                                    : word.isHot
+                                        ? `0 0 15px ${word.glowColor}`
+                                        : word.glowColor !== 'transparent'
+                                            ? `0 0 8px ${word.glowColor}`
+                                            : undefined,
+                                WebkitTextStroke: word.isOutline ? '1px rgba(150, 150, 180, 0.3)' : undefined,
+                                opacity: word.opacity,
+                            }}
                         >
-                            ⌜ RANK #01 · {positionedWords[0].value} ⌟
+                            {word.text}
                         </motion.text>
-                    )}
+                    ))}
 
                 </g>
             </svg>
 
             {/* Heatmap Legend - Weight indicator */}
-            <div className="absolute bottom-20 md:bottom-24 left-4 md:left-6 z-10 flex items-center gap-2 text-[10px] text-white/40 font-mono tracking-widest opacity-60 hover:opacity-100 transition-opacity">
+            <div className="absolute bottom-16 left-4 z-10 flex items-center gap-2 text-[10px] text-white/40 font-mono tracking-widest opacity-50 hover:opacity-100 transition-opacity">
                 <span>LOW</span>
-                <div className="w-20 h-1.5 rounded-full bg-gradient-to-r from-gray-600 via-cyan-500 to-amber-400 shadow-sm" />
+                <div className="w-16 h-1 rounded-full bg-gradient-to-r from-gray-600 via-cyan-500 to-amber-400" />
                 <span>HIGH</span>
             </div>
 
-            {/* Stats bar */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="absolute bottom-3 md:bottom-4 left-3 md:left-4 right-3 md:right-4 z-10"
-            >
-                <div className="glass-strong rounded-xl md:rounded-2xl px-4 md:px-6 py-3 md:py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 md:gap-4">
-                            <div className="flex items-center gap-2">
-                                <span className="relative flex h-3 w-3">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                                </span>
-                                <span className="text-emerald-400 font-semibold text-sm md:text-base">即時同步</span>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-4 md:gap-6">
-                            <div className="text-center">
-                                <div className="text-white font-bold text-xl md:text-2xl lg:text-3xl">{words.length}</div>
-                                <div className="text-white/50 text-xs md:text-sm">詞彙數</div>
-                            </div>
-                            <div className="w-px h-8 md:h-10 bg-white/20"></div>
-                            <div className="text-center">
-                                <div className="text-white font-bold text-xl md:text-2xl lg:text-3xl">{words.reduce((s, w) => s + w.value, 0)}</div>
-                                <div className="text-white/50 text-xs md:text-sm">總投票</div>
-                            </div>
-                        </div>
-
-                        {words.length > 0 && words[0].value > 1 ? (
-                            <div className="flex items-center gap-2 md:gap-3 bg-gradient-to-r from-amber-500/20 to-orange-500/20 px-3 md:px-4 py-2 md:py-3 rounded-xl">
-                                <span className="text-xl md:text-2xl">🔥</span>
-                                <div>
-                                    <div className="text-amber-400 font-bold text-sm md:text-base lg:text-lg">{words[0].text}</div>
-                                    <div className="text-white/50 text-xs">×{words[0].value} 票</div>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="text-white/30 text-xs md:text-sm">等待熱門詞彙...</div>
-                        )}
-                    </div>
-                </div>
-            </motion.div>
-        </div>
+            {/* V7: 簡化版同步狀態指示器 */}
+            <div className="absolute bottom-3 left-3 z-10 flex items-center gap-2 glass px-3 py-2 rounded-lg opacity-60 hover:opacity-100 transition-opacity">
+                <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="text-emerald-400 text-xs font-medium">即時同步</span>
+            </div>
+        </div >
     );
 };
 

@@ -54,12 +54,7 @@ const InputInterface = ({ sessionId }: InputInterfaceProps) => {
         }
     };
 
-    const quickWords = [
-        { emoji: '😊', text: '開心' },
-        { emoji: '💪', text: '加油' },
-        { emoji: '👍', text: '讚' },
-        { emoji: '❤️', text: '愛' },
-    ];
+
 
     return (
         <div className="relative w-full max-w-[400px]">
@@ -152,30 +147,7 @@ const InputInterface = ({ sessionId }: InputInterfaceProps) => {
                     </motion.button>
                 </form>
 
-                {/* Quick suggestions */}
-                <div className="mt-4 pt-4 border-t border-white/10">
-                    <p className="text-white/40 text-xs text-center mb-3 font-medium">
-                        ⚡ 快速輸入
-                    </p>
-                    <div className="grid grid-cols-4 gap-2">
-                        {quickWords.map((word, i) => (
-                            <motion.button
-                                key={word.text}
-                                type="button"
-                                onClick={() => setInputValue(word.text)}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.05 * i }}
-                                whileHover={{ scale: 1.05, y: -2 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="btn-secondary py-3 rounded-xl text-white/80 hover:text-white flex flex-col items-center gap-1 hover:shadow-md transition-shadow"
-                            >
-                                <span className="text-xl md:text-2xl">{word.emoji}</span>
-                                <span className="text-xs md:text-sm font-medium">{word.text}</span>
-                            </motion.button>
-                        ))}
-                    </div>
-                </div>
+
             </motion.div>
         </div>
     );

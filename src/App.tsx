@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import LiquidBackground from './components/LiquidBackground';
-import InputInterface from './components/InputInterface';
 import CloudDisplay from './components/CloudDisplay';
+import ControlPanel from './components/ControlPanel';
 import AdminPanel from './components/AdminPanel';
 import QRCodeModal from './components/QRCodeModal';
 import { usePresence } from './lib/presence';
@@ -101,22 +101,20 @@ function App() {
     <LiquidBackground>
       <div className="w-full h-full flex flex-col">
         {/* Header */}
-        <header className="flex-shrink-0 p-2 md:p-4 lg:p-5">
+        {/* V7: 精簡化 Header */}
+        <header className="flex-shrink-0 p-3 lg:p-4">
           <div className="max-w-7xl mx-auto">
-            <div className="glass-strong rounded-xl md:rounded-2xl lg:rounded-3xl px-3 md:px-6 lg:px-8 py-2 md:py-4 lg:py-5">
-              <div className="flex items-center justify-between gap-2 md:gap-4">
-                {/* Logo */}
-                <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+            <div className="glass-header rounded-2xl px-4 lg:px-6 py-3 lg:py-4">
+              <div className="flex items-center justify-between gap-3">
+                {/* Logo - 精簡版 */}
+                <div className="flex items-center gap-3 flex-shrink-0">
                   <motion.div
                     whileHover={{ scale: 1.05 }}
-                    className="w-10 h-10 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-lg md:rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/40"
+                    className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/40"
                   >
-                    <span className="text-xl md:text-3xl lg:text-4xl">☁️</span>
+                    <span className="text-xl lg:text-2xl">☁️</span>
                   </motion.div>
-                  <div className="hidden sm:block">
-                    <h1 className="text-white font-bold text-base md:text-xl lg:text-2xl">WordCloud</h1>
-                    <p className="text-white/60 text-xs md:text-sm">即時互動文字雲</p>
-                  </div>
+                  <h1 className="hidden sm:block text-white font-bold text-lg lg:text-xl">WordCloud</h1>
                 </div>
 
                 {/* Room selector */}
@@ -247,11 +245,14 @@ function App() {
             </>
           ) : (
             <>
-              <div ref={cloudRef} className="flex-1 min-w-0 h-full">
+              {/* V7: 左側控制面板 */}
+              <aside className="w-[320px] lg:w-[360px] xl:w-[380px] flex-shrink-0 h-full">
+                <ControlPanel sessionId={sessionId} />
+              </aside>
+
+              {/* V7: 右側視覺化舞台 */}
+              <div ref={cloudRef} className="flex-1 min-w-0 h-full visualization-stage rounded-2xl overflow-hidden">
                 <CloudDisplay sessionId={sessionId} />
-              </div>
-              <div className="w-[340px] lg:w-[400px] xl:w-[420px] flex-shrink-0 h-full flex items-center justify-center overflow-y-auto">
-                <InputInterface sessionId={sessionId} />
               </div>
             </>
           )}
@@ -299,35 +300,34 @@ function InputInterfaceMobile({ sessionId }: { sessionId: string }) {
     }
   };
 
-  const quickWords = [
-    { emoji: '😊', text: '開心' },
-    { emoji: '💪', text: '加油' },
-    { emoji: '👍', text: '讚' },
-    { emoji: '❤️', text: '愛' },
-  ];
-
   return (
-    <div className="glass-strong rounded-2xl p-4">
-      <form onSubmit={handleSubmit} className="flex gap-3 mb-4">
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder="輸入你想說的..."
-          maxLength={30}
-          className="glass-input flex-1 min-w-0 px-5 py-4 rounded-xl text-white text-lg font-medium"
-          disabled={isSubmitting}
-        />
+    <div className="mobile-input-container rounded-2xl p-5">
+      <form onSubmit={handleSubmit} className="flex gap-3 items-stretch">
+        <div className="flex-1 min-w-0 relative">
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="💭 輸入你想說的..."
+            maxLength={30}
+            className="mobile-input w-full h-full px-5 py-5 rounded-2xl text-white text-lg font-medium"
+            disabled={isSubmitting}
+          />
+          {/* 字數指示器 */}
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 text-sm font-medium">
+            {inputValue.length}/30
+          </div>
+        </div>
         <motion.button
           type="submit"
           disabled={!inputValue.trim() || isSubmitting}
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
-          className="btn-primary px-6 py-4 rounded-xl font-bold text-lg text-white flex items-center gap-2 flex-shrink-0 shadow-lg shadow-violet-500/30"
+          className="btn-primary px-6 py-5 rounded-2xl font-bold text-lg text-white flex items-center gap-2 flex-shrink-0 shadow-lg shadow-violet-500/40"
         >
           {isSubmitting ? (
             <motion.div
-              className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full"
+              className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full"
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
             />
@@ -341,22 +341,6 @@ function InputInterfaceMobile({ sessionId }: { sessionId: string }) {
           )}
         </motion.button>
       </form>
-
-      <div className="grid grid-cols-4 gap-2">
-        {quickWords.map((word) => (
-          <motion.button
-            key={word.text}
-            type="button"
-            onClick={() => setInputValue(word.text)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="btn-secondary py-3 rounded-xl text-white/90 hover:text-white flex flex-col items-center gap-1"
-          >
-            <span className="text-2xl">{word.emoji}</span>
-            <span className="text-sm font-semibold">{word.text}</span>
-          </motion.button>
-        ))}
-      </div>
     </div>
   );
 }

@@ -18,7 +18,8 @@ const firebaseConfig = {
     projectId: "cloud-3c5cd",
     storageBucket: "cloud-3c5cd.firebasestorage.app",
     messagingSenderId: "425190515983",
-    appId: "1:425190515983:web:89bd3d5719f1acf2daca7a"
+    appId: "1:425190515983:web:89bd3d5719f1acf2daca7a",
+    databaseURL: "https://cloud-3c5cd-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
 
 // Initialize Firebase
