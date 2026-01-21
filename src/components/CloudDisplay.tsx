@@ -211,14 +211,12 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
         };
 
         const layout = cloud<D3Word>()
-            .size([dimensions.width * 0.95, dimensions.height * 0.88])
+            .size([dimensions.width, dimensions.height * 0.95])
             .words(processedWords.slice(0, 50))
-            // V8: 動態 padding - 中文越多 padding 越大，長字串 padding 更小
+            // 動態 padding - 中文越多 padding 越大，但總體減小以確保放得下
             .padding((d) => {
                 const cjkRatio = getCJKRatio(d.text || '');
-                const textLen = d.text?.length || 0;
-                const basePadding = textLen > 10 ? 8 : 12; // 長字串減少 padding
-                return basePadding + cjkRatio * 10; // 8-22 之間
+                return 5 + cjkRatio * 5; // 5-10 之間，更緊湊
             })
             .rotate(() => 0)
             .font('"Microsoft JhengHei", "PingFang TC", system-ui, sans-serif')
@@ -240,14 +238,12 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
                 else if (wordIndex < 10) rankBonus = 1.05;   // 第 6-10 名 +5%
                 else rankBonus = Math.max(0.75, 1.0 - (wordIndex - 10) * 0.015); // 10 名後逐漸縮小
 
-                // V8: 長度懲罰（長文字縮小，但保持可讀性）
+                // 長度懲罰（長文字縮小）
                 const textLen = d.text?.length || 0;
-                const lengthPenalty = Math.max(0.5, 1 - textLen * 0.025); // 更溫和的懲罰
+                const lengthPenalty = Math.max(0.55, 1 - textLen * 0.03);
 
-                // V8: 隨機微調 ±5%（讓相同票數的詞也有差異）
-                const randomJitter = 0.95 + Math.random() * 0.1;
-
-                return Math.max(minSize, baseSize * rankBonus * lengthPenalty * randomJitter);
+                // 移除隨機微調，確保佈局穩定性
+                return Math.max(minSize, baseSize * rankBonus * lengthPenalty);
             })
             .spiral('archimedean')
             .canvas(() => canvas as HTMLCanvasElement);
