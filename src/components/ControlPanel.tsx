@@ -128,9 +128,9 @@ const ControlPanel = ({ sessionId }: ControlPanelProps) => {
                         <span className="ml-auto text-white/30 text-xs">點擊 +1</span>
                     </div>
 
-                    {/* 排行榜列表 - 可滾動 */}
-                    <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
-                        {words.slice(0, 10).map((word, index) => {
+                    {/* 排行榜列表 - 可滾動顯示所有詞彙 */}
+                    <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin min-h-0">
+                        {words.map((word, index) => {
                             const maxValue = words[0]?.value || 1;
                             const percentage = (word.value / maxValue) * 100;
                             const rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
@@ -169,12 +169,12 @@ const ControlPanel = ({ sessionId }: ControlPanelProps) => {
                                                     animate={{ width: `${percentage}%` }}
                                                     transition={{ duration: 0.5, ease: 'easeOut' }}
                                                     className={`h-full rounded-full ${index === 0
-                                                            ? 'bg-gradient-to-r from-amber-400 to-orange-500'
-                                                            : index === 1
-                                                                ? 'bg-gradient-to-r from-cyan-400 to-blue-500'
-                                                                : index === 2
-                                                                    ? 'bg-gradient-to-r from-purple-400 to-pink-500'
-                                                                    : 'bg-white/30'
+                                                        ? 'bg-gradient-to-r from-amber-400 to-orange-500'
+                                                        : index === 1
+                                                            ? 'bg-gradient-to-r from-cyan-400 to-blue-500'
+                                                            : index === 2
+                                                                ? 'bg-gradient-to-r from-purple-400 to-pink-500'
+                                                                : 'bg-white/30'
                                                         }`}
                                                 />
                                             </div>
@@ -184,15 +184,72 @@ const ControlPanel = ({ sessionId }: ControlPanelProps) => {
                             );
                         })}
                     </div>
-
-                    {/* 如果超過 10 個詞彙，顯示提示 */}
-                    {words.length > 10 && (
-                        <div className="text-center text-white/30 text-xs mt-2 pt-2 border-t border-white/5">
-                            還有 {words.length - 10} 個詞彙
-                        </div>
-                    )}
                 </div>
             )}
+
+            {/* 使用說明區塊 - 固定高度不被壓縮 */}
+            <div className="control-panel-glass rounded-2xl p-4 mt-3 flex-shrink-0">
+                <div className="flex items-center gap-2 text-white/60 text-sm mb-3">
+                    <span>📖</span>
+                    <span>使用說明</span>
+                </div>
+
+                {/* 步驟說明 */}
+                <div className="space-y-2.5 text-sm">
+                    <div className="flex items-start gap-3">
+                        <div className="w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="text-violet-400 text-xs font-bold">1</span>
+                        </div>
+                        <div className="text-white/70">
+                            <span className="text-white/90 font-medium">輸入詞彙</span>
+                            <span className="text-white/50"> — 在上方輸入框輸入想法（最多 15 字）</span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                        <div className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="text-cyan-400 text-xs font-bold">2</span>
+                        </div>
+                        <div className="text-white/70">
+                            <span className="text-white/90 font-medium">即時呈現</span>
+                            <span className="text-white/50"> — 送出後文字雲會即時更新顯示</span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                        <div className="w-5 h-5 rounded-full bg-pink-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="text-pink-400 text-xs font-bold">3</span>
+                        </div>
+                        <div className="text-white/70">
+                            <span className="text-white/90 font-medium">互動投票</span>
+                            <span className="text-white/50"> — 點擊排行榜中的詞彙可 +1 投票</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 分隔線 */}
+                <div className="h-px bg-white/10 my-3" />
+
+                {/* 功能提示 */}
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex items-center gap-1.5 text-white/40">
+                        <span>🔗</span>
+                        <span>複製連結邀請他人</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-white/40">
+                        <span>📱</span>
+                        <span>QR Code 快速加入</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-white/40">
+                        <span>🔄</span>
+                        <span>重新佈局文字雲</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-white/40">
+                        <span>🔧</span>
+                        <span>管理員清除資料</span>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };

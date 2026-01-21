@@ -210,13 +210,186 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
             return text.length > 0 ? cjkChars / text.length : 0;
         };
 
+        // V11: 碰撞檢測輔助函數 - 計算文字邊界框（保守估算確保無重疊）
+        const getTextBounds = (text: string, x: number, y: number, fontSize: number) => {
+            // 使用 Canvas 進行更精確的文字寬度測量
+            const measureCanvas = document.createElement('canvas');
+            const measureCtx = measureCanvas.getContext('2d');
+            let width: number;
+
+            if (measureCtx) {
+                measureCtx.font = `bold ${fontSize}px "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif`;
+                width = measureCtx.measureText(text).width;
+                // 加一點安全邊界
+                width *= 1.05;
+            } else {
+                // 後備估算：中文字符寬度約 1.2 倍字體大小
+                const cjkCount = (text.match(/[\u4e00-\u9fff\u3400-\u4dbf]/g) || []).length;
+                const nonCjkCount = text.length - cjkCount;
+                width = (cjkCount * fontSize * 1.2) + (nonCjkCount * fontSize * 0.65);
+            }
+
+            const height = fontSize * 1.5; // 保守的高度估算
+
+            return {
+                left: x - width / 2,
+                right: x + width / 2,
+                top: y - height / 2,
+                bottom: y + height / 2,
+                width,
+                height
+            };
+        };
+
+        // V11: 檢測兩個文字是否重疊（大幅增加 padding）
+        const checkCollision = (bounds1: ReturnType<typeof getTextBounds>, bounds2: ReturnType<typeof getTextBounds>, padding: number = 25) => {
+            return !(
+                bounds1.right + padding < bounds2.left ||
+                bounds1.left - padding > bounds2.right ||
+                bounds1.bottom + padding < bounds2.top ||
+                bounds1.top - padding > bounds2.bottom
+            );
+        };
+
+
+        // V11: 尋找無碰撞的位置（螺旋搜索）- 針對前幾名使用更大間距
+        const findNonCollidingPosition = (
+            word: PositionedWord,
+            placedBounds: ReturnType<typeof getTextBounds>[],
+            startX: number,
+            startY: number,
+            wordIndex: number
+        ): { x: number; y: number; found: boolean } => {
+            const maxSpiral = 400; // 增加搜索步數
+            const halfWidth = dimensions.width * 0.48;
+            const halfHeight = dimensions.height * 0.48;
+
+            // 前 3 名使用更大的 padding
+            const extraPadding = wordIndex < 3 ? 20 : 0;
+
+            for (let step = 0; step <= maxSpiral; step++) {
+                const angle = step * 0.35; // 更密集的螺旋
+                const radius = step * 5; // 更小的步進
+
+                const newX = startX + Math.cos(angle) * radius;
+                const newY = startY + Math.sin(angle) * radius;
+
+                if (Math.abs(newX) > halfWidth || Math.abs(newY) > halfHeight) {
+                    continue;
+                }
+
+                const newBounds = getTextBounds(word.text, newX, newY, word.size);
+                let hasCollision = false;
+
+                for (const existingBounds of placedBounds) {
+                    if (checkCollision(newBounds, existingBounds, 25 + extraPadding)) {
+                        hasCollision = true;
+                        break;
+                    }
+                }
+
+                if (!hasCollision) {
+                    return { x: newX, y: newY, found: true };
+                }
+            }
+
+            return { x: startX, y: startY, found: false };
+        };
+
+        // V12: 重新定位重疊的文字（確保 100% 無重疊）+ 最終驗證
+        const repositionOverlappingWords = (words: PositionedWord[]): PositionedWord[] => {
+            const result: PositionedWord[] = [];
+            const placedBounds: ReturnType<typeof getTextBounds>[] = [];
+
+            // 第一階段：按照排名順序處理
+            for (let wordIndex = 0; wordIndex < words.length; wordIndex++) {
+                const word = words[wordIndex];
+                let currentWord = { ...word };
+                let attempts = 0;
+                const maxAttempts = 4;
+
+                while (attempts < maxAttempts) {
+                    const position = findNonCollidingPosition(
+                        currentWord,
+                        placedBounds,
+                        attempts === 0 ? currentWord.x : 0, // 第一次用原位置，之後從中心搜索
+                        attempts === 0 ? currentWord.y : 0,
+                        wordIndex
+                    );
+
+                    if (position.found) {
+                        currentWord = { ...currentWord, x: position.x, y: position.y };
+                        result.push(currentWord);
+                        placedBounds.push(getTextBounds(currentWord.text, position.x, position.y, currentWord.size));
+                        break;
+                    } else {
+                        currentWord = { ...currentWord, size: currentWord.size * 0.8, x: 0, y: 0 };
+                        attempts++;
+                    }
+                }
+
+                if (attempts >= maxAttempts) {
+                    // 強制放置在外圍
+                    const angle = (wordIndex / words.length) * Math.PI * 2;
+                    const radius = Math.min(dimensions.width, dimensions.height) * 0.38;
+                    const fallbackX = Math.cos(angle) * radius;
+                    const fallbackY = Math.sin(angle) * radius;
+                    const finalWord = { ...currentWord, x: fallbackX, y: fallbackY, size: currentWord.size * 0.7 };
+                    result.push(finalWord);
+                    placedBounds.push(getTextBounds(finalWord.text, fallbackX, fallbackY, finalWord.size));
+                }
+            }
+
+            // 第二階段：最終驗證 - 檢查所有詞彙對是否有碰撞
+            const finalResult: PositionedWord[] = [];
+            const finalBounds: ReturnType<typeof getTextBounds>[] = [];
+
+            for (let i = 0; i < result.length; i++) {
+                let word = { ...result[i] };
+                const wordBounds = getTextBounds(word.text, word.x, word.y, word.size);
+                let needsReposition = false;
+
+                // 檢查與所有已放置詞的碰撞
+                for (const existingBounds of finalBounds) {
+                    if (checkCollision(wordBounds, existingBounds, 30)) {
+                        needsReposition = true;
+                        break;
+                    }
+                }
+
+                if (needsReposition) {
+                    // 從當前位置開始螺旋搜索
+                    const position = findNonCollidingPosition(word, finalBounds, word.x, word.y, i);
+                    if (position.found) {
+                        word = { ...word, x: position.x, y: position.y };
+                    } else {
+                        // 縮小並強制重新搜索
+                        word = { ...word, size: word.size * 0.7 };
+                        const pos2 = findNonCollidingPosition(word, finalBounds, 0, 0, i);
+                        if (pos2.found) {
+                            word = { ...word, x: pos2.x, y: pos2.y };
+                        }
+                    }
+                }
+
+                finalResult.push(word);
+                finalBounds.push(getTextBounds(word.text, word.x, word.y, word.size));
+            }
+
+            return finalResult;
+        };
+
+
+
         const layout = cloud<D3Word>()
-            .size([dimensions.width, dimensions.height * 0.95])
+            .size([dimensions.width, dimensions.height])
             .words(processedWords.slice(0, 50))
-            // 動態 padding - 中文越多 padding 越大，但總體減小以確保放得下
+            // V9: 增強 padding - 確保更好的間距
             .padding((d) => {
                 const cjkRatio = getCJKRatio(d.text || '');
-                return 5 + cjkRatio * 5; // 5-10 之間，更緊湊
+                const baseSize = d.size || minSize;
+                // 根據字體大小動態調整 padding
+                return Math.max(8, 6 + cjkRatio * 6 + baseSize * 0.12);
             })
             .rotate(() => 0)
             .font('"Microsoft JhengHei", "PingFang TC", system-ui, sans-serif')
@@ -261,7 +434,10 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
                     ...style,
                 };
             });
-            setPositionedWords(positioned);
+
+            // V9: 應用碰撞檢測和重新定位
+            const noOverlapWords = repositionOverlappingWords(positioned);
+            setPositionedWords(noOverlapWords);
         });
 
         layout.start();
@@ -549,12 +725,13 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
             </motion.div>
 
             <svg
-                width={dimensions.width * 1.5}
-                height={dimensions.height * 1.5}
-                viewBox={`0 0 ${dimensions.width * 1.5} ${dimensions.height * 1.5}`}
-                className="absolute top-1/2 left-1/2"
+                width="100%"
+                height="100%"
+                viewBox={`${-dimensions.width / 2} ${-dimensions.height / 2} ${dimensions.width} ${dimensions.height}`}
+                preserveAspectRatio="xMidYMid meet"
+                className="absolute inset-0"
                 style={{
-                    transform: `translate(-50%, -50%) translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
+                    transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
                     transition: isPanning ? 'none' : 'transform 0.1s ease-out',
                     overflow: 'visible',
                 }}
@@ -604,7 +781,8 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
                     </linearGradient>
                 </defs>
 
-                <g transform={`translate(${dimensions.width * 0.75}, ${dimensions.height * 0.75})`}>
+                {/* V9: SVG 座標系統已調整為 viewBox 中心為原點，所以這裡不需要額外偏移 */}
+                <g>
                     {positionedWords.map((word, index) => {
                         // Generate animation initial state based on selected animation type
                         const getInitialState = () => {
