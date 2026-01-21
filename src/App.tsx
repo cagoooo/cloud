@@ -311,14 +311,14 @@ function InputInterfaceMobile({ sessionId }: { sessionId: string }) {
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="💭 輸入你想說的詞彙..."
-            maxLength={30}
+            placeholder="💭 輸入詞彙..."
+            maxLength={15}
             className="mobile-input w-full px-5 py-4 rounded-2xl text-white text-lg font-medium pr-16"
             disabled={isSubmitting}
           />
           {/* 字數指示器 */}
           <div className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 text-sm font-medium">
-            {inputValue.length}/30
+            {inputValue.length}/15
           </div>
         </div>
 

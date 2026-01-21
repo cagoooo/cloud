@@ -51,12 +51,12 @@ const ControlPanel = ({ sessionId }: ControlPanelProps) => {
                         <textarea
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
-                            placeholder="在這裡輸入詞彙...&#10;&#10;可輸入多行文字"
-                            maxLength={100}
+                            placeholder="輸入詞彙..."
+                            maxLength={15}
                             className="control-input w-full h-full rounded-xl p-4 text-white text-base font-medium resize-none focus:outline-none placeholder:text-white/30 overflow-y-auto"
                         />
                         <div className="absolute bottom-3 right-3 text-white/30 text-xs font-medium">
-                            {inputValue.length}/100
+                            {inputValue.length}/15
                         </div>
                     </div>
 

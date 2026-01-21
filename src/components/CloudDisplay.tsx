@@ -170,7 +170,7 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
         // Truncate long words to ensure they fit
         const processedWords = wordsData.map(w => ({
             ...w,
-            text: w.text.length > 20 ? w.text.slice(0, 20) + '…' : w.text
+            text: w.text.length > 15 ? w.text.slice(0, 15) + '…' : w.text
         }));
 
         const wordCount = processedWords.length;
