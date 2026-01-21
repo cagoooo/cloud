@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import cloud from 'd3-cloud';
 import { useWords, type AggregatedWord } from '../lib/firebase';
+import { useAnimationSettings, getRandomFlyDirection } from '../hooks/useAnimationSettings';
 
 interface CloudDisplayProps {
     sessionId: string;
@@ -26,6 +27,9 @@ interface PositionedWord extends AggregatedWord {
     isOutline: boolean;
     opacity: number;
     fontWeight: number;
+    // Animation properties
+    initialX?: number;
+    initialY?: number;
 }
 
 // Cyberpunk-style color palette
@@ -127,6 +131,10 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
     const { words, loading, error } = useWords(sessionId);
     const previousWordsRef = useRef<string>('');
 
+    // Animation settings
+    const { entryAnimation, setEntryAnimation } = useAnimationSettings();
+    const [showAnimationSelector, setShowAnimationSelector] = useState(false);
+
     // Pan & Zoom state
     const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
     const [isPanning, setIsPanning] = useState(false);
@@ -203,12 +211,14 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
         };
 
         const layout = cloud<D3Word>()
-            .size([dimensions.width * 0.85, dimensions.height * 0.78])
+            .size([dimensions.width * 0.95, dimensions.height * 0.88])
             .words(processedWords.slice(0, 50))
-            // V8: 動態 padding - 中文越多 padding 越大
+            // V8: 動態 padding - 中文越多 padding 越大，長字串 padding 更小
             .padding((d) => {
                 const cjkRatio = getCJKRatio(d.text || '');
-                return 15 + cjkRatio * 15; // 15-30 之間
+                const textLen = d.text?.length || 0;
+                const basePadding = textLen > 10 ? 8 : 12; // 長字串減少 padding
+                return basePadding + cjkRatio * 10; // 8-22 之間
             })
             .rotate(() => 0)
             .font('"Microsoft JhengHei", "PingFang TC", system-ui, sans-serif')
@@ -230,9 +240,9 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
                 else if (wordIndex < 10) rankBonus = 1.05;   // 第 6-10 名 +5%
                 else rankBonus = Math.max(0.75, 1.0 - (wordIndex - 10) * 0.015); // 10 名後逐漸縮小
 
-                // V8: 長度懲罰（長文字縮小）
+                // V8: 長度懲罰（長文字縮小，但保持可讀性）
                 const textLen = d.text?.length || 0;
-                const lengthPenalty = Math.max(0.4, 1 - textLen * 0.04);
+                const lengthPenalty = Math.max(0.5, 1 - textLen * 0.025); // 更溫和的懲罰
 
                 // V8: 隨機微調 ±5%（讓相同票數的詞也有差異）
                 const randomJitter = 0.95 + Math.random() * 0.1;
@@ -410,11 +420,11 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
                     >
                         🧠
                     </motion.div>
-                    <h3 className="text-cyan-400/80 text-lg md:text-xl lg:text-2xl font-semibold mb-2 font-mono tracking-wider">
-                        NEURAL SYNC READY
+                    <h3 className="text-cyan-400/80 text-lg md:text-xl lg:text-2xl font-semibold mb-2 tracking-wider">
+                        準備就緒
                     </h3>
-                    <p className="text-white/40 text-xs md:text-sm font-mono">
-                        [ Awaiting data input... ]
+                    <p className="text-white/40 text-xs md:text-sm">
+                        [ 等待輸入詞彙... ]
                     </p>
                 </motion.div>
             </div>
@@ -479,6 +489,54 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
                 >
                     <span className="text-base">🔄</span>
                 </motion.button>
+                {/* Divider */}
+                <div className="w-px h-5 bg-white/20" />
+                {/* Animation Selector Toggle */}
+                <div className="relative">
+                    <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setShowAnimationSelector(!showAnimationSelector)}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${showAnimationSelector ? 'bg-violet-500/30 text-violet-400' : 'text-violet-400 hover:bg-white/10'
+                            }`}
+                        title="進場動畫"
+                    >
+                        <span className="text-base">✨</span>
+                    </motion.button>
+                    {/* Animation Dropdown */}
+                    <AnimatePresence>
+                        {showAnimationSelector && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                                className="absolute top-full right-0 mt-2 p-2 bg-black/80 backdrop-blur-md rounded-xl border border-white/10 shadow-lg min-w-[140px]"
+                            >
+                                <div className="text-white/40 text-[10px] uppercase tracking-wider mb-2 px-2">進場動畫</div>
+                                {(['fade', 'fly', 'bounce', 'none'] as const).map((type) => (
+                                    <motion.button
+                                        key={type}
+                                        whileHover={{ x: 4 }}
+                                        onClick={() => {
+                                            setEntryAnimation(type);
+                                            setShowAnimationSelector(false);
+                                        }}
+                                        className={`w-full px-3 py-2 rounded-lg text-left text-sm flex items-center gap-2 transition-colors ${entryAnimation === type
+                                            ? 'bg-violet-500/20 text-violet-300'
+                                            : 'text-white/70 hover:bg-white/10'
+                                            }`}
+                                    >
+                                        <span>{type === 'fade' ? '🌟' : type === 'fly' ? '🚀' : type === 'bounce' ? '🎾' : '⏸️'}</span>
+                                        <span>{type === 'fade' ? '淡入' : type === 'fly' ? '飛入' : type === 'bounce' ? '彈跳' : '無'}</span>
+                                        {entryAnimation === type && (
+                                            <span className="ml-auto text-violet-400">✓</span>
+                                        )}
+                                    </motion.button>
+                                ))}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </div>
 
             {/* Hint badge */}
@@ -548,53 +606,84 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
                 </defs>
 
                 <g transform={`translate(${dimensions.width / 2}, ${dimensions.height / 2})`}>
-                    {positionedWords.map((word) => (
-                        <motion.text
-                            key={word.text}
-                            initial={{ opacity: 0, scale: 0.5 }}
-                            animate={{
-                                opacity: 1,
-                                scale: word.isTop ? [1, 1.05, 1] : 1,
-                                x: word.x,
-                                y: word.y,
-                            }}
-                            transition={{
-                                type: 'spring',
-                                stiffness: 80,
-                                damping: 20,
-                                scale: word.isTop ? {
-                                    duration: 2,
-                                    repeat: Infinity,
-                                    ease: 'easeInOut',
-                                } : undefined,
-                            }}
-                            textAnchor="middle"
-                            dominantBaseline="central"
-                            fontSize={word.size}
-                            fill={
-                                word.isOutline ? 'transparent'
-                                    : word.isTop ? 'url(#liquid-gold)'
-                                        : word.isHot ? 'url(#liquid-hot)'
-                                            : word.color
+                    {positionedWords.map((word, index) => {
+                        // Generate animation initial state based on selected animation type
+                        const getInitialState = () => {
+                            switch (entryAnimation) {
+                                case 'fade':
+                                    return { opacity: 0, scale: 0.8, x: word.x, y: word.y };
+                                case 'fly': {
+                                    const flyDir = getRandomFlyDirection();
+                                    return { opacity: 0, x: word.x + flyDir.x, y: word.y + flyDir.y };
+                                }
+                                case 'bounce':
+                                    return { opacity: 0, scale: 0, x: word.x, y: word.y };
+                                case 'none':
+                                default:
+                                    return { opacity: 1, scale: 1, x: word.x, y: word.y };
                             }
-                            filter={word.isTop ? 'url(#glow-gold)' : word.isHot ? 'url(#glow-hot)' : undefined}
-                            className={`word-cloud-text cursor-pointer hover:opacity-80 ${word.isTop ? 'word-top-glow' : ''} ${word.isOutline ? 'tag-outline' : ''}`}
-                            style={{
-                                fontWeight: word.fontWeight,
-                                textShadow: word.isTop
-                                    ? `0 0 20px ${word.glowColor}, 0 0 40px ${word.glowColor}`
-                                    : word.isHot
-                                        ? `0 0 15px ${word.glowColor}`
-                                        : word.glowColor !== 'transparent'
-                                            ? `0 0 8px ${word.glowColor}`
-                                            : undefined,
-                                WebkitTextStroke: word.isOutline ? '1px rgba(150, 150, 180, 0.3)' : undefined,
-                                opacity: word.opacity,
-                            }}
-                        >
-                            {word.text}
-                        </motion.text>
-                    ))}
+                        };
+
+                        const getTransition = () => {
+                            const baseDelay = index * 0.03; // Stagger animation
+                            switch (entryAnimation) {
+                                case 'fade':
+                                    return { duration: 0.5, ease: 'easeOut' as const, delay: baseDelay };
+                                case 'fly':
+                                    return { type: 'spring' as const, stiffness: 100, damping: 15, delay: baseDelay };
+                                case 'bounce':
+                                    return { type: 'spring' as const, stiffness: 300, damping: 12, delay: baseDelay };
+                                case 'none':
+                                default:
+                                    return { duration: 0 };
+                            }
+                        };
+
+                        return (
+                            <motion.text
+                                key={word.text}
+                                initial={getInitialState()}
+                                animate={{
+                                    opacity: word.opacity,
+                                    scale: word.isTop ? [1, 1.05, 1] : 1,
+                                    x: word.x,
+                                    y: word.y,
+                                }}
+                                transition={{
+                                    ...getTransition(),
+                                    scale: word.isTop ? {
+                                        duration: 2,
+                                        repeat: Infinity,
+                                        ease: 'easeInOut',
+                                    } : undefined,
+                                }}
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                                fontSize={word.size}
+                                fill={
+                                    word.isOutline ? 'transparent'
+                                        : word.isTop ? 'url(#liquid-gold)'
+                                            : word.isHot ? 'url(#liquid-hot)'
+                                                : word.color
+                                }
+                                filter={word.isTop ? 'url(#glow-gold)' : word.isHot ? 'url(#glow-hot)' : undefined}
+                                className={`word-cloud-text cursor-pointer hover:opacity-80 ${word.isTop ? 'word-top-glow' : ''} ${word.isOutline ? 'tag-outline' : ''}`}
+                                style={{
+                                    fontWeight: word.fontWeight,
+                                    textShadow: word.isTop
+                                        ? `0 0 20px ${word.glowColor}, 0 0 40px ${word.glowColor}`
+                                        : word.isHot
+                                            ? `0 0 15px ${word.glowColor}`
+                                            : word.glowColor !== 'transparent'
+                                                ? `0 0 8px ${word.glowColor}`
+                                                : undefined,
+                                    WebkitTextStroke: word.isOutline ? '1px rgba(150, 150, 180, 0.3)' : undefined,
+                                }}
+                            >
+                                {word.text}
+                            </motion.text>
+                        );
+                    })}
 
                 </g>
             </svg>

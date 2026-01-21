@@ -1,11 +1,13 @@
 import { motion } from 'framer-motion';
 import type { ReactNode } from 'react';
+import ParticleBackground from './ParticleBackground';
 
 interface LiquidBackgroundProps {
     children: ReactNode;
+    showParticles?: boolean;
 }
 
-const LiquidBackground = ({ children }: LiquidBackgroundProps) => {
+const LiquidBackground = ({ children, showParticles = true }: LiquidBackgroundProps) => {
     return (
         <div className="relative w-full h-full overflow-hidden">
             {/* Deep gradient base */}
@@ -169,6 +171,18 @@ const LiquidBackground = ({ children }: LiquidBackgroundProps) => {
                     background: 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.3) 100%)',
                 }}
             />
+
+            {/* Particle effect layer */}
+            {showParticles && (
+                <div className="absolute inset-0 z-5">
+                    <ParticleBackground
+                        particleCount={60}
+                        connectionDistance={100}
+                        particleColor="rgba(139, 92, 246, 0.5)"
+                        lineColor="rgba(139, 92, 246, 0.12)"
+                    />
+                </div>
+            )}
 
             {/* Content */}
             <div className="relative z-10 w-full h-full">
