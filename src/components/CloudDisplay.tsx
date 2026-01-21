@@ -434,7 +434,7 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
     return (
         <div
             ref={containerRef}
-            className="w-full h-full word-cloud-glass relative overflow-hidden touch-none select-none"
+            className="w-full h-full word-cloud-glass relative touch-none select-none"
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
@@ -443,7 +443,10 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
+            style={{
+                cursor: isPanning ? 'grabbing' : 'grab',
+                overflow: 'hidden',
+            }}
         >
             {/* Floating HUD Control Capsule */}
             <div className="absolute top-3 right-3 z-20 flex items-center gap-1 p-1 bg-black/50 backdrop-blur-md rounded-full border border-white/10 shadow-lg">
@@ -550,14 +553,14 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
             </motion.div>
 
             <svg
-                width={dimensions.width}
-                height={dimensions.height}
+                width={dimensions.width * 1.5}
+                height={dimensions.height * 1.5}
+                viewBox={`0 0 ${dimensions.width * 1.5} ${dimensions.height * 1.5}`}
                 className="absolute top-1/2 left-1/2"
                 style={{
-                    maxWidth: '100%',
-                    maxHeight: '100%',
                     transform: `translate(-50%, -50%) translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
                     transition: isPanning ? 'none' : 'transform 0.1s ease-out',
+                    overflow: 'visible',
                 }}
             >
                 <defs>
@@ -605,7 +608,7 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
                     </linearGradient>
                 </defs>
 
-                <g transform={`translate(${dimensions.width / 2}, ${dimensions.height / 2})`}>
+                <g transform={`translate(${dimensions.width * 0.75}, ${dimensions.height * 0.75})`}>
                     {positionedWords.map((word, index) => {
                         // Generate animation initial state based on selected animation type
                         const getInitialState = () => {
