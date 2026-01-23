@@ -5,7 +5,6 @@ import CloudDisplay from './components/CloudDisplay';
 import ControlPanel from './components/ControlPanel';
 import AdminPanel from './components/AdminPanel';
 import QRCodeModal from './components/QRCodeModal';
-import ThemeSwitcher from './components/ThemeSwitcher';
 import { usePresence } from './lib/presence';
 
 function App() {
@@ -117,63 +116,73 @@ function App() {
                 <h1 className="hidden md:block text-white font-bold text-base lg:text-xl">文字雲</h1>
               </div>
 
-              {/* Room selector - 置中 */}
+              {/* Room selector - 更繽紛醒目版本 */}
               <div className="flex-1 flex justify-center min-w-0 px-2">
                 {isEditingRoom ? (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="flex items-center gap-1.5 md:gap-2 w-full max-w-xs md:max-w-sm"
+                    className="flex items-center gap-2 md:gap-3 w-full max-w-xs md:max-w-md"
                   >
                     <input
                       type="text"
                       value={roomInput}
                       onChange={(e) => setRoomInput(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleRoomChange()}
-                      placeholder="房間 ID"
+                      placeholder="輸入房間名稱..."
                       autoFocus
-                      className="glass-input flex-1 min-w-0 px-2.5 md:px-3 py-2 md:py-2.5 rounded-lg text-white text-sm font-medium"
+                      className="flex-1 min-w-0 px-4 py-3 rounded-xl bg-white/10 border-2 border-violet-400/50 text-white text-base font-semibold placeholder:text-white/40 focus:border-violet-400 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-violet-400/30 transition-all"
                     />
                     <button
                       onClick={generateRandomRoom}
-                      className="btn-secondary p-2 rounded-lg text-base flex-shrink-0"
+                      className="p-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-lg shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 hover:scale-105 transition-all flex-shrink-0"
+                      title="隨機房間"
                     >
                       🎲
                     </button>
                     <button
                       onClick={handleRoomChange}
-                      className="btn-primary px-3 py-2 rounded-lg text-white text-sm font-bold flex-shrink-0"
+                      className="px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all flex-shrink-0"
                     >
                       ✓
                     </button>
                   </motion.div>
                 ) : (
                   <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
                     onClick={() => setIsEditingRoom(true)}
-                    className="btn-secondary flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-1.5 md:py-2.5 rounded-lg md:rounded-xl"
+                    className="group flex items-center gap-2 md:gap-3 px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl bg-gradient-to-r from-violet-600/80 to-fuchsia-600/80 border border-white/20 shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all"
                   >
-                    <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse-dot shadow-lg shadow-emerald-400/50" />
-                    <span className="text-white font-bold text-sm md:text-base font-mono truncate max-w-[80px] md:max-w-[120px]">{sessionId}</span>
-                    <svg className="w-3.5 h-3.5 md:w-4 md:h-4 text-white/60 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {/* 動態連線指示燈 */}
+                    <span className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400 shadow-lg shadow-emerald-400/50"></span>
+                    </span>
+                    {/* 房間名稱 */}
+                    <span className="text-white font-bold text-base md:text-lg font-mono tracking-wide truncate max-w-[100px] md:max-w-[160px] lg:max-w-[200px]">
+                      {sessionId}
+                    </span>
+                    {/* 編輯圖示 */}
+                    <svg className="w-4 h-4 md:w-5 md:h-5 text-white/70 group-hover:text-white transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                     </svg>
                   </motion.button>
                 )}
               </div>
 
-              {/* Action buttons - 緊湊排列 */}
-              <div className="flex items-center gap-1 md:gap-1.5 flex-shrink-0">
-                {/* Copy link */}
+              {/* Action buttons - 更繽紛醒目版本 */}
+              <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
+                {/* Copy link - 藍色漸層 */}
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.92 }}
                   onClick={handleCopyLink}
-                  className={`flex items-center gap-1.5 px-2 md:px-3 py-1.5 md:py-2 rounded-lg font-medium transition-all duration-300 ${copied
-                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/40'
-                    : 'btn-secondary text-white/80 hover:text-white'
+                  className={`flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-xl font-semibold transition-all duration-300 ${copied
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/40'
+                    : 'bg-gradient-to-r from-sky-500/80 to-cyan-500/80 text-white shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40'
                     }`}
+                  title="複製連結"
                 >
                   {copied ? (
                     <>
@@ -181,53 +190,50 @@ function App() {
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: 1, rotate: 0 }}
                         transition={{ type: 'spring', stiffness: 300 }}
-                        className="text-base"
+                        className="text-lg"
                       >
                         ✓
                       </motion.span>
-                      <span className="hidden lg:inline text-xs font-bold">已複製</span>
+                      <span className="hidden md:inline text-sm font-bold">已複製</span>
                     </>
                   ) : (
                     <>
-                      <span className="text-base">🔗</span>
-                      <span className="hidden lg:inline text-xs">複製</span>
+                      <span className="text-lg">🔗</span>
+                      <span className="hidden md:inline text-sm">複製</span>
                     </>
                   )}
                 </motion.button>
 
-                {/* QR Code */}
+                {/* QR Code - 紫色漸層 */}
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.92 }}
                   onClick={() => setShowQRCode(true)}
-                  className="btn-secondary p-1.5 md:p-2 rounded-lg text-base md:text-lg"
+                  className="p-2.5 md:p-3 rounded-xl bg-gradient-to-r from-violet-500/80 to-purple-500/80 text-white text-lg md:text-xl shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all"
                   title="QR Code"
                 >
                   📱
                 </motion.button>
 
-                {/* Theme Switcher */}
-                <ThemeSwitcher />
-
-                {/* Admin */}
+                {/* Admin - 橙色漸層 */}
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.92 }}
                   onClick={() => setShowAdmin(true)}
-                  className="btn-secondary p-1.5 md:p-2 rounded-lg text-base md:text-lg"
+                  className="p-2.5 md:p-3 rounded-xl bg-gradient-to-r from-amber-500/80 to-orange-500/80 text-white text-lg md:text-xl shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transition-all"
                   title="管理員"
                 >
                   🔧
                 </motion.button>
 
-                {/* Online count - 更緊湊版本 */}
-                <div className="flex items-center gap-1.5 px-2 md:px-2.5 py-1.5 md:py-2 glass rounded-lg">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                {/* Online count - 綠色漸層背景 */}
+                <div className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 bg-gradient-to-r from-emerald-600/70 to-teal-600/70 rounded-xl border border-emerald-400/30 shadow-lg shadow-emerald-500/20">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white shadow-lg"></span>
                   </span>
-                  <span className="text-white font-medium text-xs md:text-sm">{onlineCount}</span>
-                  <span className="hidden md:inline text-white/50 text-xs">人</span>
+                  <span className="text-white font-bold text-sm md:text-base">{onlineCount}</span>
+                  <span className="hidden md:inline text-white/80 text-xs font-medium">人在線</span>
                 </div>
               </div>
             </div>
@@ -303,50 +309,65 @@ function InputInterfaceMobile({ sessionId }: { sessionId: string }) {
   };
 
   return (
-    <div className="mobile-input-container rounded-t-3xl p-4 pb-6 shadow-2xl">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        {/* 輸入框區塊 */}
+    <div className="rounded-t-3xl p-5 pb-7 shadow-2xl bg-gradient-to-b from-slate-900/95 via-violet-950/90 to-slate-900/95 border-t-2 border-violet-500/30 backdrop-blur-xl">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {/* 繽紛標題 */}
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
+            <span className="text-xl">💭</span>
+          </div>
+          <div>
+            <h3 className="text-white font-bold text-base">輸入你的想法</h3>
+            <p className="text-white/50 text-xs">按 Enter 或點擊送出</p>
+          </div>
+        </div>
+
+        {/* 輸入框區塊 - 彩色邊框 */}
         <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 rounded-2xl blur-md"></div>
           <input
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="💭 輸入詞彙..."
+            placeholder="輸入詞彙..."
             maxLength={15}
-            className="mobile-input w-full px-5 py-4 rounded-2xl text-white text-lg font-medium pr-16"
+            className="relative w-full px-5 py-5 rounded-2xl bg-white/10 border-2 border-violet-400/40 text-white text-lg font-semibold pr-20 placeholder:text-white/40 focus:border-violet-400 focus:bg-white/15 focus:outline-none focus:ring-4 focus:ring-violet-500/20 transition-all"
             disabled={isSubmitting}
           />
-          {/* 字數指示器 */}
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 text-sm font-medium">
+          {/* 字數指示器 - 彩色版 */}
+          <div className={`absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold px-2 py-1 rounded-lg ${inputValue.length > 12
+              ? 'bg-amber-500/20 text-amber-400'
+              : inputValue.length > 0
+                ? 'bg-violet-500/20 text-violet-400'
+                : 'text-white/40'
+            }`}>
             {inputValue.length}/15
           </div>
         </div>
 
-        {/* 按鈕列 */}
-        <div className="flex gap-3">
-          <motion.button
-            type="submit"
-            disabled={!inputValue.trim() || isSubmitting}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="btn-primary flex-1 py-4 rounded-2xl font-bold text-lg text-white flex items-center justify-center gap-3 shadow-lg shadow-violet-500/40 disabled:opacity-50"
-          >
-            {isSubmitting ? (
-              <motion.div
-                className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-              />
-            ) : (
-              <>
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
-                <span>送出</span>
-              </>
-            )}
-          </motion.button>
-        </div>
+        {/* 按鈕 - 更繽紛 */}
+        <motion.button
+          type="submit"
+          disabled={!inputValue.trim() || isSubmitting}
+          whileHover={{ scale: 1.02, y: -2 }}
+          whileTap={{ scale: 0.98 }}
+          className="w-full py-5 rounded-2xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 font-bold text-xl text-white flex items-center justify-center gap-4 shadow-2xl shadow-violet-500/40 disabled:opacity-50 disabled:cursor-not-allowed border border-white/20 hover:shadow-violet-500/60 transition-all"
+        >
+          {isSubmitting ? (
+            <motion.div
+              className="w-7 h-7 border-3 border-white/30 border-t-white rounded-full"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+            />
+          ) : (
+            <>
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+              <span>送出</span>
+            </>
+          )}
+        </motion.button>
       </form>
     </div>
   );

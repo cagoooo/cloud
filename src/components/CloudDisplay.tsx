@@ -555,50 +555,20 @@ const CloudDisplay = ({ sessionId }: CloudDisplayProps) => {
     }
 
     if (words.length === 0) {
+        // V8 Performance: Simplified empty state - removed radar scan and breathing animation
         return (
             <div className="w-full h-full word-cloud-glass flex items-center justify-center relative overflow-hidden">
-                {/* Radar scan effect */}
-                <motion.div
-                    className="absolute inset-0 opacity-20"
-                    style={{
-                        background: 'conic-gradient(from 0deg, transparent 0%, rgba(0, 255, 200, 0.3) 10%, transparent 20%)',
-                    }}
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
-                />
-
-                {/* Grid pattern */}
-                <div
-                    className="absolute inset-0 opacity-10"
-                    style={{
-                        backgroundImage: 'linear-gradient(rgba(0,255,200,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,200,0.2) 1px, transparent 1px)',
-                        backgroundSize: '40px 40px',
-                    }}
-                />
-
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="text-center px-4 z-10"
-                >
-                    {/* Breathing brain/cloud icon */}
-                    <motion.div
-                        className="text-6xl md:text-7xl lg:text-8xl mb-6"
-                        animate={{
-                            scale: [1, 1.1, 1],
-                            opacity: [0.4, 0.8, 0.4],
-                        }}
-                        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                    >
-                        🧠
-                    </motion.div>
+                <div className="text-center px-4 z-10">
+                    <div className="text-6xl md:text-7xl lg:text-8xl mb-6 opacity-60">
+                        ☁️
+                    </div>
                     <h3 className="text-cyan-400/80 text-lg md:text-xl lg:text-2xl font-semibold mb-2 tracking-wider">
                         準備就緒
                     </h3>
                     <p className="text-white/40 text-xs md:text-sm">
                         [ 等待輸入詞彙... ]
                     </p>
-                </motion.div>
+                </div>
             </div>
         );
     }

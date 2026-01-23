@@ -108,86 +108,93 @@ const AdminPanel = ({ sessionId, isOpen, onClose, cloudRef, onFullscreen }: Admi
                     onClick={(e) => e.stopPropagation()}
                 >
                     {!isAuthenticated ? (
-                        // ==================== LOGIN PANEL ====================
-                        <div className="space-y-6">
-                            {/* Header with icon */}
+                        // ==================== LOGIN PANEL - 更繽紛版本 ====================
+                        <div className="space-y-8">
+                            {/* Header with icon - 更大更繽紛 */}
                             <div className="text-center">
                                 <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    transition={{ type: 'spring', delay: 0.1 }}
-                                    className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shadow-xl shadow-violet-500/30"
+                                    initial={{ scale: 0, rotate: -180 }}
+                                    animate={{ scale: 1, rotate: 0 }}
+                                    transition={{ type: 'spring', delay: 0.1, stiffness: 200 }}
+                                    className="w-24 h-24 md:w-28 md:h-28 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 flex items-center justify-center shadow-2xl shadow-violet-500/40 border-2 border-white/20"
                                 >
-                                    <span className="text-4xl">🔐</span>
+                                    <span className="text-5xl md:text-6xl">🔐</span>
                                 </motion.div>
-                                <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                                <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent mb-3">
                                     管理員登入
                                 </h2>
-                                <p className="text-white/50 text-sm md:text-base">
+                                <p className="text-white/60 text-base md:text-lg">
                                     請輸入管理員密碼以繼續
                                 </p>
                             </div>
 
-                            {/* Password input */}
-                            <div className="space-y-4">
+                            {/* Password input - 更大更明顯 */}
+                            <div className="space-y-5">
                                 <div className="relative">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 rounded-2xl blur-xl"></div>
                                     <input
                                         type="password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                                        placeholder="輸入密碼..."
-                                        className="glass-input w-full px-6 py-5 rounded-2xl text-white text-lg text-center tracking-widest"
+                                        placeholder="● ● ● ● ● ● ● ●"
+                                        className="relative w-full px-8 py-6 rounded-2xl bg-white/10 border-2 border-violet-400/40 text-white text-xl md:text-2xl text-center tracking-[0.5em] font-bold placeholder:text-white/30 placeholder:tracking-[0.3em] focus:border-violet-400 focus:bg-white/15 focus:outline-none focus:ring-4 focus:ring-violet-500/20 transition-all"
                                         autoFocus
                                     />
                                 </div>
 
                                 {error && (
                                     <motion.div
-                                        initial={{ opacity: 0, y: -10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="flex items-center justify-center gap-2 text-red-400 text-sm"
+                                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        className="flex items-center justify-center gap-3 px-5 py-4 rounded-xl bg-red-500/20 border border-red-500/40 text-red-400 text-base font-medium"
                                     >
-                                        <span>⚠️</span>
+                                        <span className="text-xl">⚠️</span>
                                         <span>{error}</span>
                                     </motion.div>
                                 )}
 
                                 <motion.button
-                                    whileHover={{ scale: 1.02, y: -2 }}
+                                    whileHover={{ scale: 1.02, y: -3 }}
                                     whileTap={{ scale: 0.98 }}
                                     onClick={handleLogin}
-                                    className="btn-primary w-full py-5 rounded-2xl font-bold text-lg text-white shadow-xl shadow-violet-500/30 flex items-center justify-center gap-3"
+                                    className="w-full py-6 rounded-2xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 font-bold text-xl md:text-2xl text-white shadow-2xl shadow-violet-500/40 flex items-center justify-center gap-4 border border-white/20 hover:shadow-violet-500/60 transition-all"
                                 >
-                                    <span>🚀</span>
+                                    <span className="text-2xl">🚀</span>
                                     <span>登入管理後台</span>
                                 </motion.button>
                             </div>
 
-                            {/* Close hint */}
-                            <p className="text-center text-white/30 text-xs">
-                                點擊外部區域關閉
+                            {/* Close hint - 更明顯 */}
+                            <p className="text-center text-white/40 text-sm flex items-center justify-center gap-2">
+                                <span>💡</span>
+                                <span>點擊外部區域關閉</span>
                             </p>
                         </div>
                     ) : (
-                        // ==================== ADMIN DASHBOARD ====================
+                        // ==================== ADMIN DASHBOARD - 更繽紛版本 ====================
                         <div className="space-y-6">
-                            {/* Header */}
+                            {/* Header - 更繽紛 */}
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                                        <span className="text-2xl">⚙️</span>
-                                    </div>
+                                    <motion.div
+                                        initial={{ scale: 0, rotate: -180 }}
+                                        animate={{ scale: 1, rotate: 0 }}
+                                        transition={{ type: 'spring', stiffness: 200 }}
+                                        className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center shadow-2xl shadow-emerald-500/40 border-2 border-white/20"
+                                    >
+                                        <span className="text-3xl">⚙️</span>
+                                    </motion.div>
                                     <div>
-                                        <h2 className="text-xl md:text-2xl font-bold text-white">管理後台</h2>
-                                        <p className="text-white/50 text-sm">已登入為管理員</p>
+                                        <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">管理後台</h2>
+                                        <p className="text-emerald-400/70 text-sm font-medium">已登入為管理員</p>
                                     </div>
                                 </div>
                                 <motion.button
                                     whileHover={{ scale: 1.1, rotate: 90 }}
                                     whileTap={{ scale: 0.9 }}
                                     onClick={onClose}
-                                    className="w-10 h-10 rounded-xl glass flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 text-xl"
+                                    className="w-11 h-11 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 text-xl transition-all"
                                 >
                                     ✕
                                 </motion.button>
@@ -200,9 +207,9 @@ const AdminPanel = ({ sessionId, isOpen, onClose, cloudRef, onFullscreen }: Admi
                                         initial={{ opacity: 0, y: -10, scale: 0.95 }}
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                                        className={`px-5 py-4 rounded-xl text-center font-medium ${message.type === 'success'
-                                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                            : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                        className={`px-5 py-4 rounded-xl text-center font-bold text-base ${message.type === 'success'
+                                            ? 'bg-gradient-to-r from-emerald-500/25 to-teal-500/25 text-emerald-400 border-2 border-emerald-500/40'
+                                            : 'bg-gradient-to-r from-red-500/25 to-rose-500/25 text-red-400 border-2 border-red-500/40'
                                             }`}
                                     >
                                         {message.text}
@@ -210,67 +217,70 @@ const AdminPanel = ({ sessionId, isOpen, onClose, cloudRef, onFullscreen }: Admi
                                 )}
                             </AnimatePresence>
 
-                            {/* Room info card */}
-                            <div className="glass rounded-2xl p-5 flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
-                                    <span className="text-xl">🏠</span>
+                            {/* Room info card - 更繽紛 */}
+                            <div className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-2xl p-5 flex items-center gap-4 border border-cyan-500/30 shadow-lg">
+                                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/40">
+                                    <span className="text-2xl">🏠</span>
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-white/50 text-sm">目前房間</p>
-                                    <p className="text-white font-bold text-xl font-mono">{sessionId}</p>
+                                    <p className="text-cyan-400/70 text-sm font-medium">目前房間</p>
+                                    <p className="text-white font-bold text-2xl font-mono tracking-wide">{sessionId}</p>
                                 </div>
-                                <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/50"></div>
+                                <div className="relative flex h-4 w-4">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-400 shadow-lg shadow-emerald-400/50"></span>
+                                </div>
                             </div>
 
-                            {/* Action buttons grid */}
+                            {/* Action buttons grid - 更繽紛 */}
                             <div className="grid grid-cols-2 gap-4">
                                 {/* Export PNG */}
                                 <motion.button
-                                    whileHover={{ scale: 1.03, y: -3 }}
+                                    whileHover={{ scale: 1.03, y: -4 }}
                                     whileTap={{ scale: 0.97 }}
                                     onClick={handleExportPng}
                                     disabled={isExporting}
-                                    className="glass hover:bg-white/10 rounded-2xl p-6 flex flex-col items-center gap-3 transition-all border border-transparent hover:border-white/20"
+                                    className="bg-gradient-to-br from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 rounded-2xl p-6 flex flex-col items-center gap-4 transition-all border border-amber-500/30 hover:border-amber-500/50 shadow-lg"
                                 >
-                                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
-                                        <span className="text-2xl">{isExporting ? '⏳' : '📷'}</span>
+                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 flex items-center justify-center shadow-2xl shadow-orange-500/40 border border-white/20">
+                                        <span className="text-3xl">{isExporting ? '⏳' : '📷'}</span>
                                     </div>
                                     <div className="text-center">
-                                        <p className="text-white font-semibold">匯出圖片</p>
-                                        <p className="text-white/40 text-xs">PNG 高解析度</p>
+                                        <p className="text-white font-bold text-base">匯出圖片</p>
+                                        <p className="text-amber-400/60 text-xs font-medium">PNG 高解析度</p>
                                     </div>
                                 </motion.button>
 
                                 {/* Fullscreen */}
                                 <motion.button
-                                    whileHover={{ scale: 1.03, y: -3 }}
+                                    whileHover={{ scale: 1.03, y: -4 }}
                                     whileTap={{ scale: 0.97 }}
                                     onClick={handleFullscreen}
-                                    className="glass hover:bg-white/10 rounded-2xl p-6 flex flex-col items-center gap-3 transition-all border border-transparent hover:border-white/20"
+                                    className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 hover:from-purple-500/30 hover:to-indigo-500/30 rounded-2xl p-6 flex flex-col items-center gap-4 transition-all border border-purple-500/30 hover:border-purple-500/50 shadow-lg"
                                 >
-                                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
-                                        <span className="text-2xl">🖥️</span>
+                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 via-indigo-500 to-blue-600 flex items-center justify-center shadow-2xl shadow-purple-500/40 border border-white/20">
+                                        <span className="text-3xl">🖥️</span>
                                     </div>
                                     <div className="text-center">
-                                        <p className="text-white font-semibold">全螢幕模式</p>
-                                        <p className="text-white/40 text-xs">簡報投影用</p>
+                                        <p className="text-white font-bold text-base">全螢幕模式</p>
+                                        <p className="text-purple-400/60 text-xs font-medium">簡報投影用</p>
                                     </div>
                                 </motion.button>
                             </div>
 
-                            {/* Clear room - danger zone */}
+                            {/* Clear room - danger zone - 更明顯 */}
                             <div className="space-y-3">
-                                <p className="text-white/40 text-xs flex items-center gap-2">
-                                    <span>⚠️</span>
-                                    <span>危險操作區域</span>
-                                </p>
+                                <div className="flex items-center gap-2 px-3 py-2 bg-red-500/10 rounded-lg border border-red-500/20">
+                                    <span className="text-base">⚠️</span>
+                                    <span className="text-red-400/80 text-xs font-bold">危險操作區域</span>
+                                </div>
 
                                 {!showClearConfirm ? (
                                     <motion.button
-                                        whileHover={{ scale: 1.02 }}
+                                        whileHover={{ scale: 1.02, y: -2 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => setShowClearConfirm(true)}
-                                        className="w-full py-4 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-medium flex items-center justify-center gap-3 transition-all"
+                                        className="w-full py-5 rounded-xl bg-gradient-to-r from-red-500/15 to-rose-500/15 hover:from-red-500/25 hover:to-rose-500/25 border-2 border-red-500/40 hover:border-red-500/60 text-red-400 font-bold text-base flex items-center justify-center gap-3 transition-all"
                                     >
                                         <span className="text-xl">🗑️</span>
                                         <span>清除所有詞彙</span>
@@ -279,10 +289,10 @@ const AdminPanel = ({ sessionId, isOpen, onClose, cloudRef, onFullscreen }: Admi
                                     <motion.div
                                         initial={{ opacity: 0, y: -10 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        className="glass rounded-xl p-5 space-y-4 border border-red-500/30"
+                                        className="bg-gradient-to-r from-red-500/15 to-rose-500/15 rounded-2xl p-5 space-y-4 border-2 border-red-500/40"
                                     >
-                                        <p className="text-red-400 text-center font-medium flex items-center justify-center gap-2">
-                                            <span className="text-xl">⚠️</span>
+                                        <p className="text-red-400 text-center font-bold text-base flex items-center justify-center gap-2">
+                                            <span className="text-2xl">⚠️</span>
                                             <span>確定要清除所有詞彙嗎？此操作無法復原！</span>
                                         </p>
                                         <div className="flex gap-3">
@@ -290,7 +300,7 @@ const AdminPanel = ({ sessionId, isOpen, onClose, cloudRef, onFullscreen }: Admi
                                                 whileHover={{ scale: 1.02 }}
                                                 whileTap={{ scale: 0.98 }}
                                                 onClick={() => setShowClearConfirm(false)}
-                                                className="flex-1 py-4 rounded-xl glass hover:bg-white/10 text-white font-medium"
+                                                className="flex-1 py-4 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold transition-all"
                                             >
                                                 取消
                                             </motion.button>
@@ -299,7 +309,7 @@ const AdminPanel = ({ sessionId, isOpen, onClose, cloudRef, onFullscreen }: Admi
                                                 whileTap={{ scale: 0.98 }}
                                                 onClick={handleClearRoom}
                                                 disabled={isClearing}
-                                                className="flex-1 py-4 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold shadow-lg shadow-red-500/30"
+                                                className="flex-1 py-4 rounded-xl bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white font-bold shadow-2xl shadow-red-500/40 transition-all"
                                             >
                                                 {isClearing ? '清除中...' : '確定清除'}
                                             </motion.button>
@@ -308,15 +318,15 @@ const AdminPanel = ({ sessionId, isOpen, onClose, cloudRef, onFullscreen }: Admi
                                 )}
                             </div>
 
-                            {/* Logout */}
+                            {/* Logout - 更明顯 */}
                             <motion.button
-                                whileHover={{ scale: 1.01 }}
+                                whileHover={{ scale: 1.02 }}
                                 onClick={() => {
                                     setIsAuthenticated(false);
                                     setPassword('');
                                     setShowClearConfirm(false);
                                 }}
-                                className="w-full py-4 text-white/40 hover:text-white/60 text-sm flex items-center justify-center gap-2 transition-colors"
+                                className="w-full py-4 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-white/50 hover:text-white/80 text-sm font-medium flex items-center justify-center gap-2 transition-all"
                             >
                                 <span>🚪</span>
                                 <span>登出管理員</span>
