@@ -2,6 +2,8 @@
 
 [![Deploy to GitHub Pages](https://github.com/cagoooo/cloud/actions/workflows/deploy.yml/badge.svg)](https://github.com/cagoooo/cloud/actions/workflows/deploy.yml)
 
+> 📌 **目前版本：v2.1.0**（依據 `package.json`）
+
 一個現代化的即時互動文字雲應用，支援多人協作、房間系統和精美的視覺效果。
 
 🔗 **線上體驗**: [https://cagoooo.github.io/cloud/](https://cagoooo.github.io/cloud/)
