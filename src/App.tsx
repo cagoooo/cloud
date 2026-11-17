@@ -265,6 +265,35 @@ function App() {
             </>
           )}
         </main>
+
+        {/* 頁尾署名（2026-11-17 新增） */}
+        <footer className="site-footer-wrap flex-shrink-0 print:hidden">
+          <div className="site-footer-bar glass-header rounded-xl md:rounded-2xl flex flex-col md:flex-row items-center justify-between gap-1 md:gap-4 text-center md:text-left">
+            <p className="hidden md:flex items-center gap-2 text-white/70 text-sm min-w-0">
+              <span aria-hidden="true">☁️</span>
+              <strong className="text-white font-bold">文字雲</strong>
+              <span className="truncate">輸入詞彙即時匯聚，掃 QR Code 就能一起參與</span>
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+              <p className="text-white/70 text-sm">
+                Made with <span className="inline-block mx-0.5" aria-label="愛心">❤️</span> by{' '}
+                <a
+                  href="https://cagoooo.github.io/Akai/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="阿凱老師教育科技創新專區"
+                  className="site-credit__author font-bold text-violet-300 hover:text-fuchsia-300 transition-colors"
+                >
+                  阿凱老師
+                </a>
+                <span className="block sm:inline text-white/60"><span aria-hidden="true" className="hidden sm:inline">・</span>桃園市龍潭區石門國民小學</span>
+              </p>
+              <span className="site-footer-version hidden sm:inline-block rounded-full text-xs font-semibold text-white/70 bg-white/10 border border-white/15">
+                v2.1.1
+              </span>
+            </div>
+          </div>
+        </footer>
       </div>
 
       {/* Modals */}

@@ -377,6 +377,53 @@ body {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
+/* 頁尾署名（2026-11-17）：上方 * 重設會蓋掉 Tailwind 的 padding，間距寫在這裡 */
+.site-footer-wrap {
+  padding: 6px 8px 8px;
+}
+
+.site-footer-bar {
+  position: relative;
+  overflow: hidden;
+  padding: 8px 12px;
+}
+
+.site-footer-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #8b5cf6, #d946ef, #06b6d4);
+}
+
+.site-footer-version {
+  padding: 2px 10px;
+}
+
+@media (min-width: 768px) {
+  .site-footer-wrap {
+    padding: 4px 16px 12px;
+  }
+
+  .site-footer-bar {
+    padding: 10px 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .site-footer-wrap {
+    padding: 4px 24px 16px;
+  }
+}
+
+.site-credit__author {
+  text-decoration: none;
+  border-bottom: 1px dotted currentColor;
+  padding-bottom: 1px;
+}
+
 /* V7: ControlPanel */
 .control-panel-glass {
   background: rgba(18, 18, 32, 0.85);
